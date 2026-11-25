@@ -1,0 +1,49 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <!-- In-level pause screen. Logic: PauseMenu.cs. Styles: MainMenu.uss (through the MenuTheme.tss panel theme). -->
+    <ui:Template name="Settings" src="Settings.uxml" />
+    <ui:VisualElement name="root" class="root" picking-mode="Ignore">
+        <ui:Button name="pause-btn" text="Pause" class="small-btn small-btn--quiet pause-btn" />
+
+        <!-- In-level HUD: level intro and tutorial steps (left card), key reminders (bottom left). -->
+        <ui:VisualElement name="hint" class="hint hint--hidden" picking-mode="Ignore">
+            <ui:Label name="hint-title" class="hint-title" picking-mode="Ignore" />
+            <ui:Label name="hint-text" class="hint-text" picking-mode="Ignore" />
+            <ui:Button name="hint-btn" text="Next" class="small-btn hint-btn" />
+        </ui:VisualElement>
+        <ui:Label name="keys" class="keys" picking-mode="Ignore" />
+
+        <ui:VisualElement name="scrim" class="scrim" />
+
+        <ui:VisualElement name="pause-panel" class="panel">
+            <ui:VisualElement class="frame frame--pause">
+                <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
+                <ui:Label text="Paused" class="panel-title" />
+                <ui:Label name="pause-info" text="" class="pause-info" />
+                <ui:VisualElement class="pause-buttons">
+                    <ui:Button name="resume" text="Resume" class="menu-btn menu-btn--primary"><ui:VisualElement class="btn-gem" /></ui:Button>
+                    <ui:Button name="restart" text="Restart" class="menu-btn"><ui:VisualElement class="btn-gem" /></ui:Button>
+                    <ui:Button name="pause-settings" text="Settings" class="menu-btn"><ui:VisualElement class="btn-gem" /></ui:Button>
+                    <ui:Button name="to-menu" text="Main Menu" class="menu-btn menu-btn--quiet"><ui:VisualElement class="btn-gem" /></ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Win or lose -->
+        <ui:VisualElement name="result-panel" class="panel">
+            <ui:VisualElement class="frame frame--pause">
+                <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
+                <ui:Label name="result-title" text="" class="panel-title" />
+                <ui:Label name="result-body" text="" class="pause-info result-body" />
+                <ui:VisualElement class="pause-buttons">
+                    <ui:Button name="result-next" text="Next Level" class="menu-btn menu-btn--primary"><ui:VisualElement class="btn-gem" /></ui:Button>
+                    <ui:Button name="result-retry" text="Try Again" class="menu-btn"><ui:VisualElement class="btn-gem" /></ui:Button>
+                    <ui:Button name="result-menu" text="Main Menu" class="menu-btn menu-btn--quiet"><ui:VisualElement class="btn-gem" /></ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:Instance template="Settings" class="overlay" picking-mode="Ignore" />
+
+        <ui:VisualElement name="fade" class="fade" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

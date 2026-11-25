@@ -1,0 +1,34 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <!-- The Settings panel, included by MainMenu.uxml and PauseMenu.uxml. Logic: SettingsPanel.cs. -->
+    <ui:VisualElement name="settings-panel" class="panel">
+        <ui:VisualElement class="frame">
+            <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
+            <ui:Label text="Settings" class="panel-title" />
+            <ui:VisualElement class="tabs">
+                <ui:Button name="tab-audio" text="Audio" class="tab" />
+                <ui:Button name="tab-graphics" text="Graphics" class="tab" />
+                <ui:Button name="tab-controls" text="Controls" class="tab" />
+                <ui:VisualElement name="tab-underline" class="tab-underline" />
+            </ui:VisualElement>
+            <ui:VisualElement class="pages">
+                <ui:VisualElement name="page-audio" class="page">
+                    <ui:Slider name="vol-master" label="Master volume" low-value="0" high-value="1" class="setting" />
+                    <ui:Slider name="vol-music" label="Music" low-value="0" high-value="1" class="setting" />
+                    <ui:Slider name="vol-sfx" label="Sound effects" low-value="0" high-value="1" class="setting" />
+                </ui:VisualElement>
+                <ui:VisualElement name="page-graphics" class="page">
+                    <ui:DropdownField name="gfx-quality" label="Quality" class="setting" />
+                    <ui:DropdownField name="gfx-resolution" label="Resolution" class="setting" />
+                    <ui:Toggle name="gfx-fullscreen" label="Fullscreen" class="setting" />
+                    <ui:Toggle name="gfx-vsync" label="VSync" class="setting" />
+                </ui:VisualElement>
+                <ui:VisualElement name="page-controls" class="page">
+                    <ui:Slider name="mouse-sens" label="Mouse sensitivity" low-value="0.2" high-value="3" class="setting" />
+                    <ui:VisualElement name="bindings" class="bindings" />
+                    <ui:Button name="reset-bindings" text="Reset to defaults" class="small-btn small-btn--quiet" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement class="panel-footer"><ui:Button name="settings-back" text="Back" class="small-btn back-btn" /></ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

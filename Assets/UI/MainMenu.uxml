@@ -1,0 +1,125 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:Template name="Settings" src="Settings.uxml" />
+    <!-- Styles come from the panel theme (MenuTheme.tss imports MainMenu.uss), so popups like dropdown lists match too. -->
+    <ui:VisualElement name="root" class="root">
+        <ui:VisualElement name="shade" class="shade" picking-mode="Ignore" />
+        <ui:VisualElement name="vignette" class="vignette" picking-mode="Ignore" />
+        <ui:VisualElement name="embers" class="embers" picking-mode="Ignore" />
+
+        <ui:VisualElement name="main" class="main">
+            <ui:VisualElement name="title-block" class="title-block hidden-up">
+                <ui:VisualElement class="kicker-row">
+                    <ui:VisualElement class="kicker-line" />
+                    <ui:Label text="The" class="kicker" />
+                    <ui:VisualElement class="kicker-line kicker-line--right" />
+                </ui:VisualElement>
+                <ui:Label name="title" class="title" text="&lt;color=#D23A2E&gt;UN&lt;/color&gt;chosen &lt;color=#F0C35A&gt;ONE&lt;/color&gt;" />
+                <ui:VisualElement class="divider">
+                    <ui:VisualElement class="divider-line" />
+                    <ui:VisualElement class="gem" />
+                    <ui:VisualElement class="divider-line divider-line--right" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="buttons" class="buttons">
+                <ui:Button name="play" text="Play" class="menu-btn menu-btn--primary hidden-left"><ui:VisualElement class="btn-gem" /></ui:Button>
+                <ui:Button name="levels" text="Levels" class="menu-btn hidden-left"><ui:VisualElement class="btn-gem" /></ui:Button>
+                <ui:Button name="howto" text="How to Play" class="menu-btn hidden-left"><ui:VisualElement class="btn-gem" /></ui:Button>
+                <ui:Button name="settings" text="Settings" class="menu-btn hidden-left"><ui:VisualElement class="btn-gem" /></ui:Button>
+                <ui:Button name="credits" text="Credits" class="menu-btn hidden-left"><ui:VisualElement class="btn-gem" /></ui:Button>
+                <ui:Button name="quit" text="Quit" class="menu-btn menu-btn--quiet hidden-left"><ui:VisualElement class="btn-gem" /></ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="feed" class="feed hidden-right">
+            <ui:VisualElement class="feed-header">
+                <ui:VisualElement name="live-dot" class="live-dot" />
+                <ui:Label text="Live Dungeon Feed" class="feed-title" />
+            </ui:VisualElement>
+            <ui:VisualElement class="feed-row"><ui:Label text="Hero steps" class="feed-key" /><ui:Label name="stat-steps" text="0" class="feed-value" /></ui:VisualElement>
+            <ui:VisualElement class="feed-row"><ui:Label text="Crates dropped" class="feed-key" /><ui:Label name="stat-crates" text="0" class="feed-value" /></ui:VisualElement>
+            <ui:VisualElement class="feed-row"><ui:Label text="Hero trapped" class="feed-key" /><ui:Label name="stat-trapped" text="0" class="feed-value feed-value--good" /></ui:VisualElement>
+            <ui:VisualElement class="feed-row"><ui:Label text="Treasure lost" class="feed-key" /><ui:Label name="stat-treasure" text="0" class="feed-value feed-value--bad" /></ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="scrim" class="scrim" />
+
+        <ui:Instance template="Settings" class="overlay" picking-mode="Ignore" />
+
+        <!-- Levels -->
+        <ui:VisualElement name="levels-panel" class="panel">
+            <ui:VisualElement class="frame">
+                <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
+                <ui:Label text="Levels" class="panel-title" />
+                <ui:VisualElement name="level-grid" class="level-grid" />
+                <ui:VisualElement class="panel-footer">
+                    <ui:Button name="reset-progress" text="Reset progress" class="small-btn small-btn--quiet" />
+                    <ui:Button text="Back" class="small-btn back-btn" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- How to Play -->
+        <ui:VisualElement name="howto-panel" class="panel">
+            <ui:VisualElement class="frame">
+                <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
+                <ui:Label text="How to Play" class="panel-title" />
+                <ui:VisualElement class="steps">
+                    <ui:VisualElement class="step">
+                        <ui:Label text="1" class="step-num" />
+                        <ui:Label text="Your move" class="step-title" />
+                        <ui:Label name="howto-1" text="" class="step-body" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="step">
+                        <ui:Label text="2" class="step-num" />
+                        <ui:Label text="The hero's move" class="step-title" />
+                        <ui:Label text="The hero takes one step along the shortest path to the exit. The route is hidden: work it out." class="step-body" />
+                    </ui:VisualElement>
+                    <ui:VisualElement class="step">
+                        <ui:Label text="3" class="step-num" />
+                        <ui:Label text="Victory" class="step-title" />
+                        <ui:Label text="Wall the hero in so the exit can never be reached. If the hero gets out, you lose." class="step-body" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="pieces">
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--potion" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="Haste Potion" class="step-title" />
+                            <ui:Label text="Whoever reaches it first moves twice. Slide a crate onto it and the hero loses a step. If the hero drinks it, the hero takes two." class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--dwarf" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="Dwarf" class="step-title" />
+                            <ui:Label text="The hero's friend paces its hall, turns at walls and smashes any crate in its way. Crates can't be pushed onto it." class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement class="panel-footer"><ui:Button text="Back" class="small-btn back-btn" /></ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- Credits -->
+        <ui:VisualElement name="credits-panel" class="panel">
+            <ui:VisualElement class="frame frame--narrow">
+                <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
+                <ui:Label text="Credits" class="panel-title" />
+                <ui:VisualElement class="credits">
+                    <ui:Label text="A game by" class="credit-role" />
+                    <ui:Label text="Neil" class="credit-name" />
+                    <ui:Label text="Fonts" class="credit-role" />
+                    <ui:Label text="Cinzel &amp; Cinzel Decorative by Natanael Gama (SIL Open Font License)" class="credit-name credit-name--small" />
+                    <ui:Label text="Dungeon art" class="credit-role" />
+                    <ui:Label text="Tiny Dungeon by Kenney (CC0)" class="credit-name credit-name--small" />
+                    <ui:Label text="Made for" class="credit-role" />
+                    <ui:Label text="Fall 2026 Game Jam: Villain's Perspective" class="credit-name credit-name--small" />
+                </ui:VisualElement>
+                <ui:VisualElement class="panel-footer"><ui:Button text="Back" class="small-btn back-btn" /></ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="fade" class="fade" picking-mode="Ignore" />
+    </ui:VisualElement>
+</ui:UXML>

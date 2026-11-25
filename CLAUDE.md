@@ -9,22 +9,16 @@ Deadline: one week from 2026-11-22 (about 2026-11-29).
 - Each turn the villain (player) takes one action: move or rotate a wall, flood a corridor, steal the key, drop a portcullis.
 - Then the hero takes one step. The player wins if the hero can never reach the exit, and loses if the hero gets out.
 - Hero goals beyond the exit: a key opens a door, a potion gives an extra step.
+- Direction change (2026-11-23): the core is still puzzles about stopping the hero from escaping, but the villain also gets obstacles and power-ups to make runs more interesting. Dice and cards are the leading idea (for example, draw or roll for your action options). Exact mechanics are still the user's to design.
+- Title: **The UNchosen ONE** (keep that casing: "UN" and "ONE" are the emphasized parts).
 
 Plan:
+
 - Days 1–2: core loop (grid, hero pathfinding, one villain action per turn, win and lose).
 - Day 3: more villain actions and hero goals.
 - Day 4: 8–12 short levels and a level-select screen.
 - Days 5–6: art, sound, a smug villain narrator, undo.
 - Day 7: build, fix bugs, submit.
-
-## Working together: the creative work is the user's
-
-The user has moral concerns about leaning fully on AI, so the split is:
-
-- **Creative elements are the user's.** Level layouts, puzzle ideas, the design of new villain actions and hero goals, names, the title, story, narrator lines, art direction, and sound choices. For these, Claude guides instead of supplying answers: ask the user to come up with it, and offer questions, constraints, design principles, or a few directions to think about. Once the user has made something, Claude can react, critique, and check it (for example with the level solver).
-- **Code is Claude's.** Claude writes it, and each time explains in plain language what was done and how the logic works.
-- **Assets are the user's to find** (art, sound, music, fonts). Claude does not generate images unless the user specifically asks. Placeholder squares, plain colors, and UI or help text are fine.
-- When a request mixes the two (for example "make a level"), build the code side and hand the creative side back to the user with guidance.
 
 ## Project setup
 
@@ -32,6 +26,12 @@ The user has moral concerns about leaning fully on AI, so the split is:
 - Packages: 2D Sprite, 2D Tilemap, 2D Tilemap Extras (rule tiles), Input System, `com.unity.pipeline` (Unity CLI bridge).
 - Main scene: `Assets/Scenes/Main Scene.unity` (orthographic camera, Global Light 2D).
 - Game scripts go in `Assets/Scripts/`.
+- Main menu: `Assets/Scenes/Main Menu.unity` (build index 0), built by `Tools/BuildMenu.cs`. The UI is UI Toolkit: `Assets/UI/MainMenu.uxml` + `MainMenu.uss` (loaded through the `MenuTheme.tss` panel theme), driven by `Assets/Scripts/Menu/MainMenu.cs`. The live background is `MenuDungeon.cs`.
+- Levels are listed in `Progress.Levels` (scene names, in order): `Main Scene` is the tutorial (walkthrough until first beaten), then `Level 2` to `Level 6`. `Tools/BuildLevels.cs` holds their ASCII layouts and intro cards, gives the tiles Kenney art, rebuilds those scenes and Build Settings. Check any new layout with `DungeonSolver` before shipping it. `Progress.Complete(level, turns)` marks a level beaten when the hero is trapped and keeps the best (fewest) turn count.
+- Extra pieces: haste potion (level 3+, whoever reaches it first moves twice) and dwarf (level 5+, patrols, turns at walls, smashes crates). Rules live in `Dungeon.Resolve`.
+- Every level scene needs `Assets/UI/PauseUI.prefab` (pause screen, win/lose panel, hint card, level fade-in, and the scene's EventSystem). `Tools/BuildPause.cs` rebuilds it. The Settings panel is shared: `Assets/UI/Settings.uxml` + `SettingsPanel.cs`, included by both the menu and the pause screen.
+- Gameplay input goes through `Controls` (rebindable, saved in PlayerPrefs). Do not read keys directly. Options live in `GameSettings`.
+- Fonts: Cinzel Decorative (titles) and Cinzel (UI), SIL OFL, in `Assets/UI/Fonts`. Menu art: Kenney Tiny Dungeon (CC0) in `Assets/Art/Kenney/TinyDungeon`.
 
 ## Driving the editor (Unity CLI)
 

@@ -52,6 +52,28 @@ public static class DungeonSelfTest
         noCrate.crates.Clear();
         Check(DungeonSolver.Solve(noCrate, out complete) == null && complete, "solver proves no-crate level unwinnable");
 
+        // Potions: the hero drinking one steps twice; a crate landing on one gives the villain a free move.
+        d = Dungeon.Parse(new[] { "########", "#H.P..E#", "########" });
+        d.Resolve(null);
+        d.Resolve(null);
+        Check(d.hero == new Vector2Int(4, 1) && d.potions.Count == 0, "hero drinks the potion and steps twice");
+        d = Dungeon.Parse(new[] { "########", "#H.CP.E#", "########" });
+        Check(d.MoveCrate(new(3, 1), new(4, 1)) && d.Resolve(new Vector2Int(4, 1)) == 0 && d.hero == new Vector2Int(1, 1), "claimed potion freezes the hero");
+
+        // Dwarves: walk, smash a crate instead of moving, then turn around at the wall.
+        d = Dungeon.Parse(new[] { "######", "#D..C#", "#H..E#", "######" });
+        d.DwarvesStep();
+        Check(d.dwarves[0].cell == new Vector2Int(2, 2), "dwarf walks right");
+        d.DwarvesStep();
+        Check(d.dwarves[0].cell == new Vector2Int(3, 2) && d.crates.Count == 1, "dwarf reaches the crate");
+        d.DwarvesStep();
+        Check(d.dwarves[0].cell == new Vector2Int(3, 2) && d.crates.Count == 0, "dwarf smashes the crate instead of moving");
+        d.DwarvesStep();
+        d.DwarvesStep();
+        Check(d.dwarves[0].cell == new Vector2Int(3, 2) && d.dwarves[0].dir == Vector2Int.left, "dwarf turns around at the wall");
+        d.crates.Add(new(3, 1));
+        Check(!d.MoveCrate(new(3, 1), new(3, 2)), "no crate onto a dwarf");
+
         Debug.Log("DungeonSelfTest passed");
         return "passed";
     }

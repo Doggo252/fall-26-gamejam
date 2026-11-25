@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 // Level design helper: finds the fewest villain turns that trap the hero, or proves the level can't be won.
-// Breadth-first search over game positions (hero cell + crate cells). The hero is deterministic, so a
+// Breadth-first search over game positions (hero, crates, potions, dwarves). The hero is deterministic, so a
 // position fully decides what happens next, and the first win found uses the fewest turns.
 public static class DungeonSolver
 {
@@ -33,8 +33,9 @@ public static class DungeonSolver
             foreach (var move in Moves(d))
             {
                 var next = d.Clone();
-                if (move.dir >= 0 && !next.MoveCrate(move.from, move.from + Dirs[move.dir])) continue;
-                int result = next.HeroStep();
+                var to = move.dir >= 0 ? move.from + Dirs[move.dir] : (Vector2Int?)null;
+                if (to is { } t && !next.MoveCrate(move.from, t)) continue;
+                int result = next.Resolve(to);
                 if (result == -1) continue; // hero escapes: dead end
                 var path = new List<Move>(moves) { move };
                 if (result == 1) return path;
@@ -52,7 +53,8 @@ public static class DungeonSolver
             for (int i = 0; i < 4; i++) yield return new Move { from = c, dir = i };
     }
 
-    static string Key(Dungeon d) => d.hero + "|" + string.Join(",", d.crates.OrderBy(c => c.x).ThenBy(c => c.y));
+    static string Key(Dungeon d) => d.hero + "|" + string.Join(",", d.crates.OrderBy(c => c.x).ThenBy(c => c.y))
+        + "|" + string.Join(",", d.potions.OrderBy(c => c.x).ThenBy(c => c.y)) + "|" + string.Join(",", d.dwarves);
 
     public static string Report(Dungeon level)
     {
