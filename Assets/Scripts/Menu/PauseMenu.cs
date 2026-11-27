@@ -23,6 +23,7 @@ public class PauseMenu : MonoBehaviour
         instance = this;
         root = GetComponent<UIDocument>().rootVisualElement;
         fade = root.Q("fade");
+        GameText.Apply(root);
         panels = new MenuPanels(root);
         settings = new SettingsPanel(root, panels);
 
@@ -37,8 +38,7 @@ public class PauseMenu : MonoBehaviour
         root.Q<Button>("result-menu").clicked += () => Leave("Main Menu");
         hint = root.Q("hint");
         root.Q<Button>("hint-btn").clicked += () => hintAction?.Invoke();
-        root.Q<Label>("keys").text =
-            $"{Controls.KeyName(Controls.Wait)} wait   ·   {Controls.KeyName(Controls.Restart)} restart   ·   scroll zoom   ·   {Controls.KeyName(Controls.Pan)} drag to pan";
+        root.Q<Label>("keys").text = GameText.Get("keys");
 
         panels.After(50, () => fade.AddToClassList("fade--clear")); // the menu faded out to black, so fade back in
     }
@@ -59,7 +59,8 @@ public class PauseMenu : MonoBehaviour
         var game = FindAnyObjectByType<DungeonGame>();
         string level = SceneManager.GetActiveScene().name;
         int best = Progress.BestTurns(level);
-        root.Q<Label>("pause-info").text = $"{Progress.DisplayName(level)}   ·   Turn {(game ? game.Turns : 0)}   ·   Best {(best > 0 ? best.ToString() : "-")}";
+        root.Q<Label>("pause-info").text = GameText.Get("pause.info",
+            ("level", Progress.DisplayName(level)), ("turn", game ? game.Turns : 0), ("best", best > 0 ? best.ToString() : GameText.Get("pause.nobest")));
         panels.Open("pause-panel");
     }
 
@@ -104,11 +105,11 @@ public class PauseMenu : MonoBehaviour
         var p = instance;
         p.showingResult = true;
         p.nextLevel = next;
-        p.root.Q<Label>("result-title").text = won ? "Villainy Prevails" : "The Hero Escaped";
+        p.root.Q<Label>("result-title").text = GameText.Get(won ? "result.won.title" : "result.lost.title");
         p.root.Q<Label>("result-body").text = body;
         p.root.Q<Button>("result-next").style.display = won ? DisplayStyle.Flex : DisplayStyle.None;
-        p.root.Q<Button>("result-next").text = next != null ? "Next Level" : "Main Menu";
-        p.root.Q<Button>("result-retry").text = won ? "Play Again" : "Try Again";
+        p.root.Q<Button>("result-next").text = GameText.Get(next != null ? "result.next" : "result.finish");
+        p.root.Q<Button>("result-retry").text = GameText.Get(won ? "result.replay" : "result.retry");
         p.root.Q<Button>("result-menu").style.display = won && next == null ? DisplayStyle.None : DisplayStyle.Flex;
         p.panels.After(700, () => p.panels.Open("result-panel"));
     }

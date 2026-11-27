@@ -7,14 +7,6 @@ using UnityEngine.UIElements;
 // Each owner wires the panel's Back button itself, since "back" means something different in each.
 public class SettingsPanel
 {
-    static readonly Dictionary<string, string> ActionNames = new()
-    {
-        ["Select"] = "Select / move crate",
-        ["Wait"] = "Wait a turn",
-        ["Restart"] = "Restart level",
-        ["Pan"] = "Pan camera (hold and drag)",
-        ["Menu"] = "Pause / back",
-    };
     static readonly string[] Tabs = { "audio", "graphics", "controls" };
 
     readonly VisualElement root, underline;
@@ -118,14 +110,14 @@ public class SettingsPanel
         {
             var row = new VisualElement();
             row.AddToClassList("binding-row");
-            var label = new Label(ActionNames[action.name]);
+            var label = new Label(GameText.Get("control." + action.name));
             label.AddToClassList("binding-name");
             var key = new Button { text = Controls.KeyName(action) };
             key.AddToClassList("key-btn");
             key.clicked += () =>
             {
                 if (Controls.Rebinding) return;
-                key.text = "Press a key...";
+                key.text = GameText.Get("settings.listening");
                 key.AddToClassList("key-btn--listening");
                 Controls.Rebind(action, () =>
                 {

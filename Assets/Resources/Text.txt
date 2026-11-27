@@ -1,0 +1,164 @@
+# All the words in The UNchosen ONE live here.
+#
+# One line per piece of text:  key = text
+# Change the text after the "=". Leave the key alone, the game looks text up by it.
+# \n starts a new line. Lines starting with # are notes and the game skips them.
+# Leave a line empty after the "=" and that bit of text disappears.
+#
+# Put " | " between a few versions of a line and the game picks one at random each time.
+# Handy for win and lose lines so they don't repeat. Don't use it on tutorial hints,
+# they get redrawn every move and would keep changing.
+#
+# Anything in {curly braces} gets filled in by the game:
+#   {Click} / {click}   "Click" (or "Press X on" if the player rebound the select key)
+#   {wait} {restart} {pan}   whatever key the player has for that control
+#   {turns}   a turn count like "5 turns" (the words come from word.turn and word.turns below)
+#   {level} {turn} {best} {n}   numbers, only where a line's note says so
+#
+# Save the file and press Play again to see changes.
+
+word.turn = turn
+word.turns = turns
+back = Back
+
+# ---------- Main menu ----------
+
+menu.kicker = The
+# The colors pick out UN and ONE. Keep the <color> tags around them.
+menu.title = <color=#D23A2E>UN</color>chosen <color=#F0C35A>ONE</color>
+menu.play = Play
+menu.levels = Levels
+menu.howto = How to Play
+menu.settings = Settings
+menu.credits = Credits
+menu.quit = Quit
+
+# The stats box on the right of the main menu, counting what happens in the background dungeon.
+feed.title = The Dungeon
+feed.steps = Steps
+feed.crates = Dropped crates
+feed.trapped = Times trapped
+feed.treasure = Treasure stolen
+
+# ---------- Level select ----------
+
+levels.title = Levels
+levels.reset = Reset progress
+levels.done = Beaten
+levels.ready = Ready
+levels.locked = Locked
+levels.best = Best: {turns}
+
+# ---------- How to Play ----------
+
+howto.title = How to Play
+howto.1.title = Your move
+howto.1.body = Move a crate to an adjacent square ({click}), or press {wait} to wait.
+howto.2.title = The hero's move
+howto.2.body = The hero's goal is to get to the exit as fast as possible. On each turn, it takes one step on its shortest route.
+howto.3.title = How you win
+howto.3.body = Your goal is to stop the hero from getting to the exit by blocking all the available paths.
+howto.potion.title = Haste Potion
+howto.potion.body = Slide a crate onto the potion and you get an extra move. But the hero can drink it too!
+howto.dwarf.title = Dwarf
+howto.dwarf.body = Goes around destroying crates. He is the hero's apprentice.
+
+# ---------- Credits ----------
+
+credits.title = Credits
+credits.by = A game by
+credits.name = Neil
+credits.fonts = Fonts
+credits.fonts.who = Cinzel & Cinzel Decorative by Natanael Gama (SIL Open Font License)
+credits.art = Dungeon art
+credits.art.who = Tiny Dungeon by Kenney (CC0)
+credits.madefor = Made for
+credits.madefor.who = The Fall 2026 Game Jam (theme: Villain's Perspective)
+
+# ---------- Settings (main menu and pause screen) ----------
+
+settings.title = Settings
+settings.audio = Audio
+settings.graphics = Graphics
+settings.controls = Controls
+settings.master = Master volume
+settings.music = Music
+settings.sfx = Sound effects
+settings.quality = Quality
+settings.resolution = Resolution
+settings.fullscreen = Fullscreen
+settings.vsync = VSync
+settings.sensitivity = Mouse sensitivity
+settings.reset = Reset to defaults
+settings.listening = Press a key...
+
+# Names in the key rebinding list.
+control.Select = Grab and move crates
+control.Wait = Wait a turn
+control.Restart = Restart the level
+control.Pan = Move the camera
+control.Menu = Pause / go back
+
+# ---------- In a level ----------
+
+# Level names on the pause screen. {n} is the level number.
+level.name = Level {n}
+pause.button = Pause
+# Pause screen. {level} is the level name, {turn} the current turn, {best} your best or pause.nobest.
+pause.title = Paused
+pause.info = {level}   ·   Turn {turn}   ·   Best: {best}
+pause.nobest = not yet
+pause.resume = Resume
+pause.restart = Restart
+pause.settings = Settings
+pause.menu = Main Menu
+# The line in the bottom-left corner.
+keys = {wait} to wait   ·   {restart} to restart   ·   scroll to zoom   ·   hold {pan} to look around
+
+# Win and lose screen.
+result.won.title = You win!
+result.lost.title = You lose...
+result.won = The hero is trapped after {turns}.
+result.won.best = The hero is trapped after {turns}. That's your best yet!
+# An extra line under the win message: after the tutorial, after the last level, after any other level.
+result.won.tutorial = Every dungeon is a new puzzle.
+result.won.last = That's every level. The hero might want to look into a new line of work.
+result.won.normal = Nowhere to go. | They'll be there a while. | Somebody should tell the hero's mom. | Another hero, another dead end.
+result.lost = They got away. Press {restart} to try again. | So close. Press {restart} for another go. | The hero says thanks for the open door. Press {restart} to try again.
+result.next = Next Level
+# Replaces "Next Level" after the last level.
+result.finish = Main Menu
+result.replay = Play Again
+result.retry = Try Again
+result.menu = Main Menu
+
+# ---------- Tutorial (level 1, until it's beaten once) ----------
+
+tutorial.1.title = You are the villain
+tutorial.1.body = The knight character is the hero, and the hero escapes through the door.\nYour objective is to try and stop the hero.
+tutorial.1.button = Next
+tutorial.2.title = Taking turns
+tutorial.2.body = Each turn you can slide one crate one space: up, down, left or right. After you move, the hero also takes one step towards the exit.
+tutorial.2.button = Got it
+tutorial.grab.title = Your move
+tutorial.grab.body = {Click} the crate to grab it.
+tutorial.slide.title = Slide it
+tutorial.slide.body = {Click} a spot (glowing) next to a crate to move it.
+tutorial.block.title = Win hint
+tutorial.block.body = Move a crate to the glowing square before the hero.\nPress {wait} to wait a turn, {restart} to start over.
+
+# ---------- Level intro cards (shown until your first move) ----------
+
+# Level 1 only shows these when you replay it after the tutorial.
+level1.title = Back to Basics
+level1.intro = One crate, one hero, one door. You know how this goes.
+level2.title = Two Crates
+level2.intro = There are two crates now, but only one of them can get there in time. Figure out which.
+level3.title = A Potion
+level3.intro = See that potion? Slide a crate onto it and you get a free move.\nIf the hero walks over it first, they get the free step instead.
+level4.title = Close Call
+level4.intro = The hero is standing right next to a potion. You'd better get to it first.
+level5.title = The Dwarf
+level5.intro = The hero brought a friend. The dwarf walks back and forth, turns around at walls and smashes any crate in the way.\nYou can't push a crate onto him either.
+level6.title = The Last One
+level6.intro = Three crates, a potion and a dwarf. Last level. Good luck.

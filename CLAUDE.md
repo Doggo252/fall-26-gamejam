@@ -27,9 +27,10 @@ Plan:
 - Main scene: `Assets/Scenes/Main Scene.unity` (orthographic camera, Global Light 2D).
 - Game scripts go in `Assets/Scripts/`.
 - Main menu: `Assets/Scenes/Main Menu.unity` (build index 0), built by `Tools/BuildMenu.cs`. The UI is UI Toolkit: `Assets/UI/MainMenu.uxml` + `MainMenu.uss` (loaded through the `MenuTheme.tss` panel theme), driven by `Assets/Scripts/Menu/MainMenu.cs`. The live background is `MenuDungeon.cs`.
-- Levels are listed in `Progress.Levels` (scene names, in order): `Main Scene` is the tutorial (walkthrough until first beaten), then `Level 2` to `Level 6`. `Tools/BuildLevels.cs` holds their ASCII layouts and intro cards, gives the tiles Kenney art, rebuilds those scenes and Build Settings. Check any new layout with `DungeonSolver` before shipping it. `Progress.Complete(level, turns)` marks a level beaten when the hero is trapped and keeps the best (fewest) turn count.
+- Levels are listed in `Progress.Levels` (scene names, in order): `Main Scene` is the tutorial (walkthrough until first beaten), then `Level 2` to `Level 6`. `Tools/BuildLevels.cs` holds their ASCII layouts, gives the tiles Kenney art, rebuilds those scenes and Build Settings. Check any new layout with `DungeonSolver` before shipping it. `Progress.Complete(level, turns)` marks a level beaten when the hero is trapped and keeps the best (fewest) turn count.
 - Extra pieces: haste potion (level 3+, whoever reaches it first moves twice) and dwarf (level 5+, patrols, turns at walls, smashes crates). Rules live in `Dungeon.Resolve`.
 - Every level scene needs `Assets/UI/PauseUI.prefab` (pause screen, win/lose panel, hint card, level fade-in, and the scene's EventSystem). `Tools/BuildPause.cs` rebuilds it. The Settings panel is shared: `Assets/UI/Settings.uxml` + `SettingsPanel.cs`, included by both the menu and the pause screen.
+- All player-facing text lives in `Assets/Resources/Text.txt` (`key = text`). UXML uses `text="#key"`, code uses `GameText.Get("key")`. Never hard-code player text. `DungeonSelfTest` fails if a key is missing.
 - Gameplay input goes through `Controls` (rebindable, saved in PlayerPrefs). Do not read keys directly. Options live in `GameSettings`.
 - Fonts: Cinzel Decorative (titles) and Cinzel (UI), SIL OFL, in `Assets/UI/Fonts`. Menu art: Kenney Tiny Dungeon (CC0) in `Assets/Art/Kenney/TinyDungeon`.
 

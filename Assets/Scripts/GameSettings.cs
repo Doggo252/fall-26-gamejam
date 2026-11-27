@@ -39,7 +39,7 @@ public static class Progress
     // Scene names in play order. Each must be in Build Settings (Tools/BuildLevels.cs adds them).
     public static readonly string[] Levels = { "Main Scene", "Level 2", "Level 3", "Level 4", "Level 5", "Level 6" };
 
-    public static string DisplayName(string level) => System.Array.IndexOf(Levels, level) is var i and >= 0 ? $"Level {i + 1}" : level;
+    public static string DisplayName(string level) => System.Array.IndexOf(Levels, level) is var i and >= 0 ? GameText.Get("level.name", ("n", i + 1)) : level;
 
     // The level after this one, or null after the last.
     public static string Next(string level) => System.Array.IndexOf(Levels, level) is var i and >= 0 && i + 1 < Levels.Length ? Levels[i + 1] : null;

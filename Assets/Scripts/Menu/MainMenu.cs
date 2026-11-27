@@ -25,6 +25,7 @@ public class MainMenu : MonoBehaviour
     void Start()
     {
         root = GetComponent<UIDocument>().rootVisualElement;
+        GameText.Apply(root);
         fade = root.Q("fade");
         emberLayer = root.Q("embers");
         panels = new MenuPanels(root);
@@ -157,14 +158,14 @@ public class MainMenu : MonoBehaviour
             tile.SetEnabled(unlocked);
             var num = new Label((i + 1).ToString());
             num.AddToClassList("level-num");
-            var state = new Label(done ? "Conquered" : unlocked ? "Ready" : "Locked");
+            var state = new Label(GameText.Get(done ? "levels.done" : unlocked ? "levels.ready" : "levels.locked"));
             state.AddToClassList("level-state");
             tile.Add(num);
             tile.Add(state);
             if (done)
             {
                 int best = Progress.BestTurns(level);
-                var bestLabel = new Label($"Best: {best} turn{(best == 1 ? "" : "s")}");
+                var bestLabel = new Label(GameText.Get("levels.best", ("turns", GameText.Turns(best))));
                 bestLabel.AddToClassList("level-best");
                 tile.Add(bestLabel);
             }
@@ -197,9 +198,7 @@ public class MainMenu : MonoBehaviour
 
     void FillHowTo()
     {
-        root.Q<Label>("howto-1").text =
-            $"Slide one crate into a free cell beside it ({Controls.SelectVerb.ToLower()} the crate, then the cell), " +
-            $"or press {Controls.KeyName(Controls.Wait)} to wait.";
+        root.Q<Label>("howto-1").text = GameText.Get("howto.1.body"); // again here, in case the keys were rebound
     }
 
     void Quit()

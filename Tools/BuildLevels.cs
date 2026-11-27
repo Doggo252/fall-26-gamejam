@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 // Gives the level tiles Kenney art, repaints the tutorial (Main Scene) and creates Level 2 to Level 6
-// as copies of it with their own layouts and intro cards. Run with:
+// as copies of it with their own layouts. Level names and intro cards are in Assets/Resources/Text.txt. Run with:
 // unity command script run --file Tools/BuildLevels.cs --entry BuildLevels.Run
 // WARNING: overwrites the map in every level scene listed below. Tools/BuildDay1.cs would undo the art.
 public static class BuildLevels
@@ -13,10 +13,10 @@ public static class BuildLevels
     const string Kenney = "Assets/Art/Kenney/TinyDungeon";
     const string MainScene = "Assets/Scenes/Main Scene.unity";
 
-    // '#' wall, '.' floor, 'C' crate, 'H' hero, 'E' exit, 'P' haste potion, 'D' dwarf. Each checked by DungeonSolver.
-    static readonly (string scene, string title, string intro, string[] rows)[] Levels =
+    // Same characters as Dungeon.Parse. Each layout is checked with DungeonSolver before it ships.
+    static readonly (string scene, string[] rows)[] Levels =
     {
-        ("Level 2", "Choose Your Crate", "Two crates this time, and only one of them can get there in time. Pick wisely.", new[] {
+        ("Level 2", new[] {
             "###########",
             "#.....#.C.#",
             "#.#...#.#.#",
@@ -26,7 +26,7 @@ public static class BuildLevels
             "#.#.#.#.#.#",
             "#.#.....#.#",
             "####E######" }),
-        ("Level 3", "Haste Potion", "Whoever reaches a potion first moves twice.\nSlide a crate onto it and you move again before the hero steps. If the hero drinks it, the hero takes two steps.", new[] {
+        ("Level 3", new[] {
             "###########",
             "#.......H.#",
             "###.#.###.#",
@@ -36,7 +36,7 @@ public static class BuildLevels
             "#.#.###.#.#",
             "#C#.......#",
             "########E##" }),
-        ("Level 4", "Race for It", "The hero is one step from a potion. Get there first.", new[] {
+        ("Level 4", new[] {
             "#############",
             "#........C..#",
             "#.#.###H.##.#",
@@ -46,7 +46,7 @@ public static class BuildLevels
             "#.###.###..##",
             "#C#.........#",
             "######E######" }),
-        ("Level 5", "The Dwarf", "The hero brought a friend. The dwarf paces its hall, turns around at walls and smashes any crate in its way. Crates can't be pushed onto it.", new[] {
+        ("Level 5", new[] {
             "###########",
             "#H.....C..#",
             "#.#.###.#.#",
@@ -56,7 +56,7 @@ public static class BuildLevels
             "#.###...###",
             "#.....#...#",
             "#####E#####" }),
-        ("Level 6", "One Last Escape", "Three crates, a potion and a dwarf stand between the hero and freedom. Show them who the real chosen one is.", new[] {
+        ("Level 6", new[] {
             "#############",
             "#.....#.....#",
             "#C###.#.#H..#",
@@ -81,13 +81,13 @@ public static class BuildLevels
             ? "tutorial layout unchanged" : "Main Scene had a different layout; repainted with DungeonSelfTest.Level1";
 
         Sprite Art(int i) => AssetDatabase.LoadAssetAtPath<Sprite>($"{Kenney}/tile_{i:0000}.png");
-        Tile MakeTile(string name, int art)
+        Tile MakeTile(string name, int art, Color? tint = null)
         {
             var path = $"Assets/Tiles/{name}.asset";
             var t = AssetDatabase.LoadAssetAtPath<Tile>(path);
             if (t == null) { t = ScriptableObject.CreateInstance<Tile>(); AssetDatabase.CreateAsset(t, path); }
             t.sprite = Art(art);
-            t.color = Color.white;
+            t.color = tint ?? Color.white;
             t.flags = TileFlags.LockColor;
             EditorUtility.SetDirty(t);
             return t;
@@ -97,7 +97,11 @@ public static class BuildLevels
         {
             floor = MakeTile("Floor", 48), wall = MakeTile("Wall", 0), wallFront = MakeTile("WallFront", 40),
             crate = MakeTile("Crate", 63), exit = MakeTile("Exit", 45), heroStart = MakeTile("HeroStart", 97),
-            potion = MakeTile("Potion", 116), dwarf = MakeTile("Dwarf", 87),
+            ward = MakeTile("Ward", 42),
+            // Same order as the Potion and Foe enums. Recall reuses the stone flask, tinted violet.
+            potions = new[] { MakeTile("Potion", 116), MakeTile("PotionSleep", 114), MakeTile("PotionRecall", 113, new Color(0.75f, 0.5f, 1f)),
+                MakeTile("PotionRage", 115), MakeTile("PotionStone", 113) },
+            foes = new[] { MakeTile("Dwarf", 87), MakeTile("Brute", 86), MakeTile("Wizard", 84), MakeTile("Thief", 111), MakeTile("Hunter", 88) },
         };
         AssetDatabase.SaveAssets();
 
@@ -106,12 +110,14 @@ public static class BuildLevels
         var palette = PrefabUtility.LoadPrefabContents(palettePath);
         var paletteMap = palette.GetComponentInChildren<Tilemap>();
         paletteMap.ClearAllTiles();
-        Tile[] paletteTiles = { tiles.wall, tiles.wallFront, tiles.floor, tiles.crate, tiles.exit, tiles.heroStart, tiles.potion, tiles.dwarf };
-        for (int i = 0; i < paletteTiles.Length; i++) paletteMap.SetTile(new Vector3Int(i, 0, 0), paletteTiles[i]);
+        var paletteTiles = new System.Collections.Generic.List<Tile> { tiles.wall, tiles.wallFront, tiles.floor, tiles.ward, tiles.crate, tiles.exit, tiles.heroStart };
+        paletteTiles.AddRange(tiles.potions);
+        paletteTiles.AddRange(tiles.foes);
+        for (int i = 0; i < paletteTiles.Count; i++) paletteMap.SetTile(new Vector3Int(i, 0, 0), paletteTiles[i]);
         PrefabUtility.SaveAsPrefabAsset(palette, palettePath);
         PrefabUtility.UnloadPrefabContents(palette);
 
-        Setup(game, tiles, DungeonSelfTest.Level1, "", "", tutorial: true);
+        Setup(game, tiles, DungeonSelfTest.Level1, tutorial: true);
         EditorSceneManager.SaveScene(scene);
 
         var buildScenes = new System.Collections.Generic.List<EditorBuildSettingsScene>
@@ -119,13 +125,13 @@ public static class BuildLevels
             new("Assets/Scenes/Main Menu.unity", true),
             new(MainScene, true),
         };
-        foreach (var (name, title, intro, rows) in Levels)
+        foreach (var (name, rows) in Levels)
         {
             string path = $"Assets/Scenes/{name}.unity";
             AssetDatabase.DeleteAsset(path);
             AssetDatabase.CopyAsset(MainScene, path);
             var s = EditorSceneManager.OpenScene(path);
-            Setup(Object.FindAnyObjectByType<DungeonGame>(), tiles, rows, title, intro, tutorial: false);
+            Setup(Object.FindAnyObjectByType<DungeonGame>(), tiles, rows, tutorial: false);
             EditorSceneManager.SaveScene(s);
             buildScenes.Add(new EditorBuildSettingsScene(path, true));
         }
@@ -134,13 +140,13 @@ public static class BuildLevels
         return $"{note}; built {Levels.Length} levels; build settings has {buildScenes.Count} scenes";
     }
 
-    class Tiles { public Tile floor, wall, wallFront, crate, exit, heroStart, potion, dwarf; }
+    class Tiles { public Tile floor, wall, wallFront, ward, crate, exit, heroStart; public Tile[] potions, foes; }
 
-    static void Setup(DungeonGame game, Tiles t, string[] rows, string title, string intro, bool tutorial)
+    static void Setup(DungeonGame game, Tiles t, string[] rows, bool tutorial)
     {
         game.floorTile = t.floor; game.crateTile = t.crate; game.exitTile = t.exit; game.heroStartTile = t.heroStart;
-        game.potionTile = t.potion; game.dwarfTile = t.dwarf; game.dwarfSprite = t.dwarf.sprite;
-        game.introTitle = title; game.intro = intro; game.tutorial = tutorial;
+        game.wardTile = t.ward; game.potionTiles = t.potions; game.foeTiles = t.foes;
+        game.tutorial = tutorial;
         var heroSprite = game.hero.GetComponent<SpriteRenderer>();
         heroSprite.sprite = t.heroStart.sprite;
         heroSprite.color = Color.white;
@@ -155,7 +161,8 @@ public static class BuildLevels
                 var c = new Vector2Int(x, y);
                 TileBase tile = !d.floor.Contains(c) ? (d.floor.Contains(c + Vector2Int.down) ? t.wallFront : t.wall)
                     : c == d.hero ? t.heroStart : c == d.exit ? t.exit : d.crates.Contains(c) ? t.crate
-                    : d.potions.Contains(c) ? t.potion : d.HasDwarf(c) ? t.dwarf : t.floor;
+                    : d.potions.TryGetValue(c, out var p) ? t.potions[(int)p] : d.wards.Contains(c) ? t.ward
+                    : d.HasFoe(c) ? t.foes[(int)d.foes.Find(f => f.cell == c).kind] : t.floor;
                 game.map.SetTile((Vector3Int)c, tile);
             }
         game.hero.position = game.map.GetCellCenterWorld((Vector3Int)d.hero); // just for the Scene view; the game places the hero
