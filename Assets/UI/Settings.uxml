@@ -21,6 +21,7 @@
                     <ui:DropdownField name="gfx-resolution" label="#settings.resolution" class="setting" />
                     <ui:Toggle name="gfx-fullscreen" label="#settings.fullscreen" class="setting" />
                     <ui:Toggle name="gfx-vsync" label="#settings.vsync" class="setting" />
+                    <ui:Toggle name="gfx-shake" label="#settings.shake" class="setting" />
                 </ui:VisualElement>
                 <ui:VisualElement name="page-controls" class="page">
                     <ui:Slider name="mouse-sens" label="#settings.sensitivity" low-value="0.2" high-value="3" class="setting" />

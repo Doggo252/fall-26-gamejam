@@ -60,7 +60,6 @@
 
 .hidden-up { opacity: 0; translate: 0 -50px; }
 .hidden-left { opacity: 0; translate: -90px 0; }
-.hidden-right { opacity: 0; translate: 90px 0; }
 .hidden-fade { opacity: 0; }
 .hidden-pop { opacity: 0; scale: 0.6 0.6; }
 
@@ -229,82 +228,6 @@
     rotate: 225deg;
 }
 
-/* ---------- Live feed card ---------- */
-
-.feed {
-    position: absolute;
-    right: 56px;
-    bottom: 64px;
-    width: 330px;
-    padding: 16px 20px 12px 20px;
-    background-color: rgba(13, 11, 16, 0.82);
-    border-width: 2px;
-    border-color: var(--edge);
-    border-top-color: var(--gold);
-    border-radius: 3px;
-    transition: opacity 0.8s ease-out, translate 0.8s ease-out-cubic;
-}
-
-.feed-header {
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.feed-title {
-    -unity-font-definition: url("Fonts/Cinzel-ExtraBold.ttf");
-    font-size: 16px;
-    letter-spacing: 3px;
-    color: var(--gold);
-    margin: 0;
-    padding: 0;
-}
-
-.live-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
-    margin-right: 10px;
-    background-color: #E5372B;
-    transition: opacity 0.5s ease-in-out;
-}
-
-.live-dot--dim {
-    opacity: 0.2;
-}
-
-.feed-row {
-    flex-direction: row;
-    justify-content: space-between;
-    border-top-width: 1px;
-    border-color: rgba(74, 66, 80, 0.5);
-    padding: 5px 0;
-}
-
-.feed-key {
-    font-size: 16px;
-    color: var(--muted);
-    margin: 0;
-    padding: 0;
-}
-
-.feed-value {
-    -unity-font-definition: url("Fonts/Cinzel-ExtraBold.ttf");
-    font-size: 17px;
-    color: var(--text);
-    margin: 0;
-    padding: 0;
-    transition: scale 0.25s ease-out-back, color 0.25s ease-out;
-}
-
-.feed-value--good { color: #7BD389; }
-.feed-value--bad { color: #E06A5A; }
-
-.feed-value--bump {
-    scale: 1.35 1.35;
-    color: var(--gold-hi);
-}
-
 /* ---------- Panels ---------- */
 
 .scrim {
@@ -340,6 +263,11 @@
 
 .frame--narrow {
     width: 760px;
+}
+
+/* How to Play: the piece list needs the room. Fits down to 5:4 screens at the 1920x1080 reference. */
+.frame--tall {
+    height: 900px;
 }
 
 .panel--open .frame {
@@ -610,9 +538,9 @@
 }
 
 .level-tile {
-    width: 160px;
-    height: 160px;
-    margin: 10px;
+    width: 100px;
+    height: 124px;
+    margin: 6px 3px;
     padding: 0;
     flex-direction: column;
     align-items: center;
@@ -632,22 +560,22 @@
 
 .level-num {
     -unity-font-definition: url("Fonts/CinzelDecorative-Black.ttf");
-    font-size: 58px;
+    font-size: 44px;
     color: var(--text);
     margin: 0;
     padding: 0;
 }
 
 .level-state {
-    font-size: 13px;
-    letter-spacing: 2px;
+    font-size: 12px;
+    letter-spacing: 1px;
     color: var(--muted);
     margin: 0;
     padding: 0;
 }
 
 .level-best {
-    font-size: 13px;
+    font-size: 11px;
     color: var(--gold-hi);
     margin: 4px 0 0 0;
     padding: 0;
@@ -662,6 +590,7 @@
 /* ---------- How to Play ---------- */
 
 .steps {
+    flex-shrink: 0;
     flex-direction: row;
     justify-content: space-between;
 }
@@ -702,16 +631,31 @@
 }
 
 .pieces {
-    flex-direction: row;
-    justify-content: space-between;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 0;
     margin-top: 18px;
 }
 
+.pieces-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+/* Thin themed scrollbar: no arrow buttons, a gold thumb on a dark track. */
+.pieces .unity-scroller--vertical { width: 8px; margin-left: 8px; }
+.pieces .unity-scroller__low-button, .pieces .unity-scroller__high-button { display: none; }
+.pieces .unity-base-slider__tracker { background-color: var(--ink); border-width: 0; border-radius: 4px; }
+.pieces .unity-base-slider__dragger { background-color: var(--gold); border-width: 0; border-radius: 4px; }
+.pieces .unity-base-slider__drag-container { margin: 0; }
+
 .piece {
-    width: 433px;
+    width: 428px;
+    margin-bottom: 10px;
     flex-direction: row;
     align-items: center;
-    padding: 16px 18px;
+    padding: 10px 14px;
     background-color: rgba(255, 255, 255, 0.03);
     border-width: 1px;
     border-color: var(--edge);
@@ -721,15 +665,24 @@
 }
 
 .piece-icon {
-    width: 64px;
-    height: 64px;
+    width: 52px;
+    height: 52px;
     flex-shrink: 0;
     margin-right: 16px;
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .piece-icon--potion { background-image: url("../Art/Kenney/TinyDungeon/tile_0116.png"); }
+.piece-icon--sleep { background-image: url("../Art/Kenney/TinyDungeon/tile_0114.png"); }
+.piece-icon--recall { background-image: url("../Art/Kenney/TinyDungeon/tile_0113.png"); -unity-background-image-tint-color: rgb(191, 128, 255); }
+.piece-icon--rage { background-image: url("../Art/Kenney/TinyDungeon/tile_0115.png"); }
+.piece-icon--stone { background-image: url("../Art/Kenney/TinyDungeon/tile_0113.png"); }
 .piece-icon--dwarf { background-image: url("../Art/Kenney/TinyDungeon/tile_0087.png"); }
+.piece-icon--brute { background-image: url("../Art/Kenney/TinyDungeon/tile_0086.png"); }
+.piece-icon--wizard { background-image: url("../Art/Kenney/TinyDungeon/tile_0084.png"); }
+.piece-icon--thief { background-image: url("../Art/Kenney/TinyDungeon/tile_0111.png"); }
+.piece-icon--hunter { background-image: url("../Art/Kenney/TinyDungeon/tile_0088.png"); }
+.piece-icon--ward { background-image: url("../Art/Kenney/TinyDungeon/tile_0042.png"); }
 
 .piece-text {
     flex-shrink: 1;
@@ -775,12 +728,15 @@
     left: 0; top: 0; right: 0; bottom: 0;
 }
 
-.pause-btn {
+.hud-buttons {
     position: absolute;
     top: 18px;
     right: 18px;
-    margin: 0;
+    flex-direction: row;
 }
+
+.help-btn { margin: 0; }
+.pause-btn { margin: 0 0 0 14px; }
 
 .frame--pause {
     width: 620px;
@@ -821,12 +777,29 @@
     translate: -40px 0;
 }
 
+.hint-head {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 0 10px 0;
+}
+
 .hint-title {
     -unity-font-definition: url("Fonts/CinzelDecorative-Black.ttf");
     font-size: 24px;
     color: var(--gold);
-    margin: 0 0 10px 0;
+    white-space: normal;
+    flex-shrink: 1;
+    margin: 0;
     padding: 0;
+}
+
+/* The new-piece card's picture of the piece. */
+.hint-icon {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    margin-right: 14px;
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .hint-text {
@@ -859,3 +832,62 @@
     font-size: 19px;
 }
 
+
+/* ---------- Stars, credits roll ---------- */
+
+.stars {
+    flex-direction: row;
+    justify-content: center;
+    margin: 2px 0 10px 0;
+}
+
+.star { transition: scale 0.3s ease-out-back; }
+
+.level-stars {
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.stars-total {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: -10px 0 14px 0;
+}
+
+.stars-total > Label {
+    font-size: 20px;
+    color: var(--gold-hi);
+    margin: 0 0 0 4px;
+    padding: 0;
+}
+
+.roll {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    overflow: hidden;
+    background-color: #0B0A0E;
+}
+
+.roll-text {
+    position: absolute;
+    left: 0;
+    right: 0;
+    align-items: center;
+}
+
+.roll-title { font-size: 84px; margin-bottom: 40px; }
+.roll-thanks { font-size: 56px; margin-top: 80px; }
+
+.roll-hero {
+    position: absolute;
+    bottom: 60px;
+    width: 96px;
+    height: 96px;
+    rotate: 8deg; /* head down */
+}

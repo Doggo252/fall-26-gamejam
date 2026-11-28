@@ -2,11 +2,17 @@
     <!-- In-level pause screen. Logic: PauseMenu.cs. Styles: MainMenu.uss (through the MenuTheme.tss panel theme). -->
     <ui:Template name="Settings" src="Settings.uxml" />
     <ui:VisualElement name="root" class="root" picking-mode="Ignore">
-        <ui:Button name="pause-btn" text="#pause.button" class="small-btn small-btn--quiet pause-btn" />
+        <ui:VisualElement class="hud-buttons" picking-mode="Ignore">
+            <ui:Button name="help-btn" text="#hud.hint" class="small-btn small-btn--quiet help-btn" />
+            <ui:Button name="pause-btn" text="#pause.button" class="small-btn small-btn--quiet pause-btn" />
+        </ui:VisualElement>
 
         <!-- In-level HUD: level intro and tutorial steps (left card), key reminders (bottom left). -->
         <ui:VisualElement name="hint" class="hint hint--hidden" picking-mode="Ignore">
-            <ui:Label name="hint-title" class="hint-title" picking-mode="Ignore" />
+            <ui:VisualElement class="hint-head" picking-mode="Ignore">
+                <ui:VisualElement name="hint-icon" class="hint-icon" picking-mode="Ignore" />
+                <ui:Label name="hint-title" class="hint-title" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:Label name="hint-text" class="hint-text" picking-mode="Ignore" />
             <ui:Button name="hint-btn" class="small-btn hint-btn" />
         </ui:VisualElement>
@@ -33,6 +39,7 @@
             <ui:VisualElement class="frame frame--pause">
                 <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
                 <ui:Label name="result-title" text="" class="panel-title" />
+                <ui:VisualElement name="result-stars" class="stars" picking-mode="Ignore" />
                 <ui:Label name="result-body" text="" class="pause-info result-body" />
                 <ui:VisualElement class="pause-buttons">
                     <ui:Button name="result-next" class="menu-btn menu-btn--primary"><ui:VisualElement class="btn-gem" /></ui:Button>
@@ -43,6 +50,24 @@
         </ui:VisualElement>
 
         <ui:Instance template="Settings" class="overlay" picking-mode="Ignore" />
+
+        <!-- Credits roll after the last level (PauseMenu.RollCredits) -->
+        <ui:VisualElement name="roll" class="roll">
+            <ui:VisualElement name="roll-text" class="roll-text" picking-mode="Ignore">
+                <ui:Label text="#menu.kicker" class="kicker" />
+                <ui:Label text="#menu.title" class="title roll-title" />
+                <ui:Label text="#credits.by" class="credit-role" />
+                <ui:Label text="#credits.name" class="credit-name" />
+                <ui:Label text="#credits.art" class="credit-role" />
+                <ui:Label text="#credits.art.who" class="credit-name credit-name--small" />
+                <ui:Label text="#credits.fonts" class="credit-role" />
+                <ui:Label text="#credits.fonts.who" class="credit-name credit-name--small" />
+                <ui:Label text="#credits.madefor" class="credit-role" />
+                <ui:Label text="#credits.madefor.who" class="credit-name credit-name--small" />
+                <ui:Label text="#roll.thanks" class="title roll-thanks" />
+            </ui:VisualElement>
+            <ui:VisualElement name="roll-hero" class="roll-hero" picking-mode="Ignore" />
+        </ui:VisualElement>
 
         <ui:VisualElement name="fade" class="fade" picking-mode="Ignore" />
     </ui:VisualElement>

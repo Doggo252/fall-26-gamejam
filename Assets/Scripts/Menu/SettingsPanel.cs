@@ -28,8 +28,15 @@ public class SettingsPanel
 
         string Percent(float v) => Mathf.RoundToInt(v * 100f) + "%";
         Slider("vol-master", GameSettings.Master, v => GameSettings.Master = v, Percent);
-        Slider("vol-music", GameSettings.Music, v => GameSettings.Music = v, Percent);
-        Slider("vol-sfx", GameSettings.Sfx, v => GameSettings.Sfx = v, Percent);
+        Slider("vol-music", GameSettings.Music, v => { GameSettings.Music = v; Sfx.UpdateMusicVolume(); }, Percent);
+        float lastBlip = 0f;
+        Slider("vol-sfx", GameSettings.Sfx, v =>
+        {
+            GameSettings.Sfx = v;
+            if (Time.unscaledTime - lastBlip < 0.12f) return; // dragging fires every frame; one blip per 0.12 s
+            lastBlip = Time.unscaledTime;
+            Sfx.Play(Sound.Pick);
+        }, Percent);
         Slider("mouse-sens", GameSettings.MouseSensitivity, v => GameSettings.MouseSensitivity = v, v => v.ToString("0.0") + "x");
 
         var quality = root.Q<DropdownField>("gfx-quality");
@@ -54,6 +61,9 @@ public class SettingsPanel
         var vsync = root.Q<Toggle>("gfx-vsync");
         vsync.value = GameSettings.VSync;
         vsync.RegisterValueChangedCallback(e => GameSettings.VSync = e.newValue);
+        var shake = root.Q<Toggle>("gfx-shake");
+        shake.value = GameSettings.ScreenShake;
+        shake.RegisterValueChangedCallback(e => GameSettings.ScreenShake = e.newValue);
 
         root.Q<Button>("reset-bindings").clicked += () =>
         {

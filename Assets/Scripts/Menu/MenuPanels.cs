@@ -12,6 +12,14 @@ public class MenuPanels
     {
         this.root = root;
         scrim = root.Q("scrim");
+        // Every button in the menu or pause screen clicks, by mouse or keyboard.
+        root.RegisterCallback<ClickEvent>(e => ClickSound(e.target), TrickleDown.TrickleDown);
+        root.RegisterCallback<NavigationSubmitEvent>(e => ClickSound(e.target), TrickleDown.TrickleDown);
+    }
+
+    static void ClickSound(IEventHandler target)
+    {
+        if (target is Button || target is VisualElement v && v.GetFirstAncestorOfType<Button>() != null) Sfx.Play(Sound.Click);
     }
 
     public bool IsOpen(string name) => Current != null && Current.name == name;

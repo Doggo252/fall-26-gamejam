@@ -19,12 +19,6 @@ public class MenuDungeon : MonoBehaviour
     public int maxCrates = 10;
     public Color torchColor = new(1f, 0.55f, 0.2f), heroLightColor = new(1f, 0.85f, 0.6f);
 
-    // Read by the menu's live feed.
-    public int HeroSteps { get; private set; }
-    public int CratesDropped { get; private set; }
-    public int TimesTrapped { get; private set; }
-    public int TreasuresTaken { get; private set; }
-
     static readonly Vector2Int[] Dirs = { Vector2Int.up, Vector2Int.right, Vector2Int.down, Vector2Int.left };
 
     readonly Dungeon d = new();
@@ -141,19 +135,19 @@ public class MenuDungeon : MonoBehaviour
 
     void HeroStep()
     {
-        if (d.hero == d.exit) { TreasuresTaken++; NewTreasure(); return; }
+        if (d.hero == d.exit) { Sfx.Play(Sound.Pop, 1f, 0.25f); NewTreasure(); return; }
         var path = d.PathToExit();
         if (path == null)
         {
             // Walled in: the villain wins this round, then the crates crumble and the hunt resumes.
-            TimesTrapped++;
+            Sfx.Play(Sound.Huh, 1f, 0.3f);
             while (crateOrder.Count > 0) RemoveOldestCrate();
             return;
         }
         // The dungeon fights back: drop a crate a few cells ahead of the hero.
         if (path.Count > 5 && Random.value < crateChance) DropCrate(path[Random.Range(2, 5)]);
         d.hero = path[0];
-        HeroSteps++;
+        Sfx.Play(Sound.Step, 0.8f, 0.06f); // background sounds stay quiet so the menu isn't noisy
     }
 
     void MinionStep(Walker m)
@@ -190,7 +184,7 @@ public class MenuDungeon : MonoBehaviour
         var r = Spawn(crate, c, 2);
         crateSprites[c] = r;
         StartCoroutine(Pop(r.transform, 1.8f, 1f));
-        CratesDropped++;
+        Sfx.Play(Sound.Pick, 0.8f, 0.2f);
     }
 
     void RemoveOldestCrate()

@@ -1,7 +1,7 @@
 # Session context: animations, new pieces, 15 levels
 
 Handoff notes for picking this work up in a new chat. Read CLAUDE.md first; this file only covers what's in flight.
-Last updated 2026-11-27. Everything below up to "Not done" is in commit `ea68356` ("Create more enemies and levels").
+Last updated 2026-11-27 (second session). The rules and animations are in commit `ea68356`; the 15 levels, text and menu changes below are not committed yet.
 
 ## The request being worked on
 
@@ -56,40 +56,42 @@ An earlier request, "Add narrator reactions", was interrupted by this one and is
 - `DungeonSelfTest` covers every new rule, including the walked-ground rule. It passed before the walked-ground
   change; **after that change it has not been recompiled or run in Unity.**
 
-## Not done (in order)
+## Done in the second session
 
-1. Recompile in Unity, check console is clean, run `DungeonSelfTest.Run()`.
-2. Generate 15 levels (Level 2 to Level 16). Planned introduction order:
-   L2 two crates, L3 three crates, L4 haste, L5 sleep, L6 dwarf, L7 recall, L8 brute, L9 stone (with a dwarf or
-   brute so it matters), L10 wizard, L11 rage, L12 thief (with a potion it can steal), L13 hunter, L14 to L16 mixes.
-   Every level must: be winnable, fail the single-crate solve (complete search), and each potion/foe must change
-   the best solution when removed. Difficulty: longer minimum solution, more crates used, bigger maps, few waits.
-   Watch for solutions that still look like stalling (one crate moved back and forth); reject those.
-3. Put the layouts in `Tools/BuildLevels.cs`, set `Progress.Levels` (GameSettings.cs) to 16 scenes, run the builder.
-   Old Level 2 to 6 best scores in PlayerPrefs belong to different layouts now: clear them or tell the user.
-4. Text in `Assets/Resources/Text.txt`: `level1..level16` titles and intros (human voice, no "oo" in titles because
-   of the Cinzel Decorative ligature, no em dashes), How to Play entries for all 10 pieces and wards (the menu's
-   `.pieces` row only has potion and dwarf now; probably a scrolling list with icons).
-5. Level select layout for 16 tiles inside the 1000x660 menu frame.
-6. Verify each built scene with the solver, play-test with game view captures, update CLAUDE.md
-   (levels list, pieces, hero rule).
+- Self-test passes (one test needed `walked` reset after teleporting the hero).
+- Levels 2 to 16 are in `Tools/BuildLevels.cs` and built; `Progress.Levels` has 16 scenes. Order: 2 two crates,
+  3 three crates, 4 haste, 5 sleep, 6 dwarf, 7 recall, 8 brute, 9 stone + dwarf, 10 wizard, 11 rage, 12 thief + haste,
+  13 hunter, 14 sleep + dwarf, 15 recall + brute, 16 hunter + sleep. Fewest turns: 10, 9, 10, 12, 10, 16, 10, 11, 11,
+  18, 12, 14, 10, 13, 20. Every one is winnable, can't be won with one crate (complete search), every potion/companion
+  changes the solution when removed and acts in it, and no crate goes back to a cell it was on.
+- Text.txt: titles and intros for all 16 levels, How to Play entries for all 10 pieces and wards. Keep player text
+  short and plain (the user flagged an earlier draft as sounding like AI).
+- Menu: level select is 8x2 tiles; How to Play pieces are a two-column scrolling list with icons.
+- Play-tested Level 9 and Level 16 in play mode by replaying the solver's moves: both end in a win, console clean.
+- The level generator moved into the repo as `Tools/LevelGen` (see below).
+- How to Play frame is taller (`.frame--tall`, 900 of the 1920x1080 reference), so about 2.5 rows of pieces show.
+- New-piece cards: first time each potion or companion appears, the hint card explains it (icon, How to Play text,
+  its cells marked) until "Got it". Saved as `seen.<key>` in PlayerPrefs, cleared by Reset progress. Self-test checks
+  every piece has How to Play text. Checked on Level 5 in play mode.
 
-## Level generator (scratch, may be wiped)
+## Still open
 
-A standalone .NET copy of the rules and solver, much faster than running inside Unity and can run 7 levels at once:
-`/private/tmp/claude-502/-Users-neilpatil-Coding-Unity-fall-26-gamejam/1cad1dd6-5a2b-4265-a0fc-914c7d7a648b/scratchpad/gen/`
+- `howto.2.body` (the user's line) doesn't mention the hero's fresh-ground rule yet. Suggest a sentence, don't reword it.
+- Narrator reactions (earlier request) not started.
+- Mixed levels with three special pieces never generated; the last three levels use two each.
 
-- `Stubs.cs` fakes `Vector2Int`, `Vector3Int`, `Mathf`. `Dungeon.cs` and `DungeonSolver.cs` are copies from the
-  project (the solver with `using UnityEditor` and everything from `Report` down removed). Recopy after rule changes.
-- `Gen2.cs`: carves a looping maze, puts the exit on the bottom edge, wards cells within N steps of it, places
-  pieces at random, and keeps the best-scoring candidates that pass the checks in step 2 above.
-- Build: `dotnet build -c Release -o out` (targets net9.0).
-- Run: `dotnet out/gen.dll <seed> <tries> <w> <h> <loops> <crates> <potions|-> <foes|-> <wardRadius> <minHero> <minWin> <maxPositions>`
-  e.g. `dotnet out/gen.dll 6 3000 13 9 0.25 3 - D 2 10 8 60000`. Each search stops after 240 s.
-- Check a fixed layout: `dotnet out/gen.dll check level.txt` (prints min turns, single-crate result, crates used,
-  and the result with each special piece removed).
+## Level generator
 
-If the folder is gone, rebuild it from the description above.
+Now in the repo: `Tools/LevelGen` (usage at the top of `Gen.cs`). It compiles `Assets/Scripts/Dungeon.cs` and
+`Assets/Scripts/DungeonSolver.cs` directly with small Unity stubs, so rule changes need no recopying.
+
+- `add` mode tries one more piece on every free cell of a proven layout. This is how levels 14 to 16 were made;
+  random search with two special pieces found nothing in 5 minutes.
+- Checks: winnable, single crate can't win (complete search), no crate revisits a cell, turns at most 1.5x the hero's
+  escape length, each potion/companion changes the result when removed, companions and the stone potion must act in
+  the solution (companions are let off once a crate is stoned). The stone potion is placed in a companion's line with
+  a crate beside it; the thief starts 3 to 7 steps from a potion.
+- Keep maps at 13x9 or 13x11 with 3 to 4 crates: 15x11 with 4 crates runs past the position limit.
 
 ## House rules to keep
 

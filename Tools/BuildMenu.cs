@@ -53,6 +53,7 @@ public static class BuildMenu
         var camGo = new GameObject("Main Camera") { tag = "MainCamera" };
         camGo.transform.position = new Vector3(0, 0, -10);
         var cam = camGo.AddComponent<Camera>();
+        camGo.AddComponent<AudioListener>(); // menu clicks need something to hear them
         cam.orthographic = true;
         cam.orthographicSize = 1080f / (2 * 64); // 64 px per tile at 1080p, an exact 4x of the 16 px art
         cam.clearFlags = CameraClearFlags.SolidColor;
@@ -81,7 +82,7 @@ public static class BuildMenu
         var doc = ui.AddComponent<UIDocument>();
         doc.panelSettings = panel;
         doc.visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Assets/UI/MainMenu.uxml");
-        ui.AddComponent<MainMenu>().dungeon = dungeon;
+        ui.AddComponent<MainMenu>();
 
         var es = new GameObject("EventSystem");
         es.AddComponent<EventSystem>();

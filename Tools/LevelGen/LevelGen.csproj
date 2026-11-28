@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Level generator outside Unity. Compiles the game's own rules and solver, so it always matches the game. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AssemblyName>gen</AssemblyName>
+    <NoWarn>CS8632;CS0162</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/Scripts/Dungeon.cs" Link="Dungeon.cs" />
+    <Compile Include="../../Assets/Scripts/DungeonSolver.cs" Link="DungeonSolver.cs" />
+  </ItemGroup>
+</Project>

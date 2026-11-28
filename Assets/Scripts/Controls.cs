@@ -13,8 +13,9 @@ public static class Controls
     public static readonly InputAction Restart = Map.AddAction("Restart", InputActionType.Button, "<Keyboard>/r");
     public static readonly InputAction Menu = Map.AddAction("Menu", InputActionType.Button, "<Keyboard>/escape");
     public static readonly InputAction Pan = Map.AddAction("Pan", InputActionType.Button, "<Mouse>/rightButton");
+    public static readonly InputAction Hint = Map.AddAction("Hint", InputActionType.Button, "<Keyboard>/h");
 
-    public static readonly InputAction[] Rebindable = { Select, Wait, Restart, Pan, Menu };
+    public static readonly InputAction[] Rebindable = { Select, Wait, Restart, Hint, Pan, Menu };
 
     public static bool Rebinding { get; private set; }
 

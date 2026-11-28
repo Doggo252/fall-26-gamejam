@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
-// Level design helper: finds the fewest villain turns that trap the hero, or proves the level can't be won.
+// Finds the fewest villain turns that trap the hero, or proves the level can't be won. Used for level design
+// and, in game, for the Hint button (on a background thread: it only touches Dungeon, never Unity objects).
 // Breadth-first search over whole game positions (hero, crates, potions, companions, hero status). Everything
 // in the dungeon is deterministic, so a position fully decides what happens next, and the first win found
 // uses the fewest turns.
@@ -96,7 +96,8 @@ public static class DungeonSolver
         return head + (complete ? "NOT winnable: every possible position was checked." : "Gave up: too many positions to check.");
     }
 
-    [MenuItem("Dungeon/Solve Open Level")]
+#if UNITY_EDITOR
+    [UnityEditor.MenuItem("Dungeon/Solve Open Level")]
     public static string SolveOpenLevel()
     {
         var game = Object.FindAnyObjectByType<DungeonGame>();
@@ -105,4 +106,5 @@ public static class DungeonSolver
         Debug.Log(report);
         return report;
     }
+#endif
 }

@@ -1,0 +1,5 @@
+bin/
+obj/
+out/
+# The root .gitignore drops Unity's generated *.csproj files; this one is hand-written.
+!LevelGen.csproj

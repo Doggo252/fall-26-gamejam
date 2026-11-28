@@ -121,7 +121,7 @@ public static class DungeonSelfTest
         d = Dungeon.Parse(new[] { "#######", "#.#C.E#", "#H....#", "#######" });
         Check(d.PathToExit().Count == 5, "a plain hero walks around the crate");
         d = Dungeon.Parse(new[] { "#######", "#H.C.E#", "#G###.#", "#.....#", "#######" });
-        d.hero = new(1, 2); d.rage = true;
+        d.hero = new(1, 2); d.rage = true; d.walked.Clear(); d.walked.Add(d.hero);
         var rageSteps = 0;
         while (d.HeroStep() == 0) rageSteps++;
         Check(rageSteps == 4 && d.crates.Count == 0 && !d.rage, "raging hero smashes through one crate");
@@ -148,12 +148,59 @@ public static class DungeonSelfTest
                 keys.Add(m.Groups[1].Value);
         for (int i = 1; i <= Progress.Levels.Length; i++) { keys.Add($"level{i}.title"); keys.Add($"level{i}.intro"); }
         foreach (var a in Controls.Rebindable) keys.Add("control." + a.name);
+        foreach (var k in System.Linq.Enumerable.Concat(Progress.PotionKeys, Progress.FoeKeys)) { keys.Add($"howto.{k}.title"); keys.Add($"howto.{k}.body"); }
+        Check(Progress.PotionKeys.Length == System.Enum.GetValues(typeof(Potion)).Length && Progress.FoeKeys.Length == System.Enum.GetValues(typeof(Foe)).Length, "a How to Play key for every potion and companion");
         var lines = GameText.Parse(System.IO.File.ReadAllText("Assets/Resources/Text.txt"));
         var missing = keys.FindAll(k => !lines.ContainsKey(k) && !k.StartsWith("best.") && !k.StartsWith("audio.") && !k.StartsWith("gfx.") && !k.StartsWith("input.") && !k.StartsWith("controls."));
         Check(missing.Count == 0, "Text.txt is missing: " + string.Join(", ", missing));
 
+        // Stars: one par per level, 3 at par, 2 within half again, a hint caps it at 2.
+        Check(Progress.Par.Length == Progress.Levels.Length, "a par turn count for every level");
+        Check(Progress.StarsFor("Level 2", 10, false) == 3 && Progress.StarsFor("Level 2", 15, false) == 2 && Progress.StarsFor("Level 2", 16, false) == 1
+            && Progress.StarsFor("Level 2", 10, true) == 2, "star thresholds");
+        Check(Progress.FormatTime(83.44f) == "1:23.4" && Progress.FormatTime(5f) == "0:05.0", "time format");
+
+        // Every sound builds, is audible and doesn't clip.
+        Check(Sfx.Clips.Length == Enum.GetValues(typeof(Sound)).Length, "a clip for every sound");
+        foreach (var clip in System.Linq.Enumerable.Append(Sfx.Clips, Sfx.MusicClip))
+        {
+            var data = new float[clip.samples];
+            clip.GetData(data, 0);
+            float peak = 0f;
+            foreach (var s in data) peak = float.IsNaN(s) ? 99f : Mathf.Max(peak, Mathf.Abs(s));
+            Check(clip.samples > 0 && peak > 0.05f && peak <= 1f, $"sound {clip.name} is audible and doesn't clip (peak {peak})");
+        }
+
+        // Crosshair: the click point (hotspot) is the center dot, the gap around it is see-through, and the edge pixels are empty.
+        var cross = Crosshair.Texture(Crosshair.Look.Red);
+        var pop = Crosshair.Texture(Crosshair.Look.Pop);
+        int h = (int)Crosshair.Hotspot.x;
+        Check(cross.GetPixel(h, h).a == 1f && cross.GetPixel(h, h + 3).a == 0f && cross.GetPixel(h, h + 8).a == 1f, "crosshair has a dot, a gap and a ring");
+        Check(cross.GetPixel(0, 0).a == 0f && cross.GetPixel(Crosshair.Size - 1, h).a == 0f, "crosshair fits inside its image");
+        Check(pop.GetPixel(0, 0).a == 0f && pop.GetPixel(Crosshair.Size - 1, h).a == 0f, "pop crosshair fits inside its image");
+        Check(Crosshair.Texture(Crosshair.Look.Gold).GetPixel(h, h) != cross.GetPixel(h, h), "the grab crosshair is a different color");
+        Check(pop.GetPixel(h + 7, h + 7).a == 1f && cross.GetPixel(h + 7, h + 7).a == 0f, "the pop crosshair's ring is bigger");
+
         Debug.Log("DungeonSelfTest passed");
         return "passed";
+    }
+
+    // Slow (about a minute): re-solves every level and checks Progress.Par still matches.
+    [MenuItem("Dungeon/Check Par Turns")]
+    public static string CheckPar()
+    {
+        var wrong = new System.Collections.Generic.List<string>();
+        var open = UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;
+        for (int i = 0; i < Progress.Levels.Length; i++)
+        {
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene($"Assets/Scenes/{Progress.Levels[i]}.unity");
+            var moves = DungeonSolver.Solve(UnityEngine.Object.FindAnyObjectByType<DungeonGame>().ReadLevel(), out _);
+            if (moves == null || moves.Count != Progress.Par[i]) wrong.Add($"{Progress.Levels[i]}: solver {moves?.Count}, Par {Progress.Par[i]}");
+        }
+        if (open != "") UnityEditor.SceneManagement.EditorSceneManager.OpenScene(open);
+        var report = wrong.Count == 0 ? "Par turns all match" : "Par turns wrong: " + string.Join("; ", wrong);
+        Debug.Log(report);
+        return report;
     }
 
     static void Check(bool ok, string what)

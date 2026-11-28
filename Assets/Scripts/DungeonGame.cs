@@ -38,6 +38,23 @@ public class DungeonGame : MonoBehaviour
     int result; // +1 villain won, -1 hero escaped, 0 playing
     int guidePage; // tutorial: 0 and 1 are the intro pages, 2 is hands-on
     bool newBest, guiding, animating;
+    int heroSteps; // alternates the squeak pitch
+    float playTime; // seconds since the first grab or wait, not counting pauses
+    bool newBestTime;
+    float shakeLeft, shakeSize;
+    Vector3 shakeOffset;
+
+    // Hint: the solver runs on a background thread. Its winning moves stay good while the player follows them,
+    // since the dungeon is deterministic, so only the first hint of a streak has to wait for it.
+    static readonly string[] DirNames = { "up", "right", "down", "left" }; // Dungeon.Dirs order
+    System.Threading.Tasks.Task<(List<DungeonSolver.Move> moves, bool complete)> hintJob;
+    List<DungeonSolver.Move> hintPath;
+    int hintJobTurn;
+    bool hintShown, hintGaveUp, hinted;
+    const float HintCooldown = 10f; // seconds between hints, so the player has to think a bit first
+    float hintReadyAt;
+    int hintWaitShown;
+    Vector2Int? hoverCrate; // the crate under the mouse last frame, for the crosshair pop and tick
     float fitSize; // camera size that shows the whole level
     Sprite square;
 
@@ -129,15 +146,35 @@ public class DungeonGame : MonoBehaviour
         return level;
     }
 
+    void OnDestroy() => Crosshair.Show(false); // leaving while over a crate
+
     void Update()
     {
         Idle();
+        var over = HoveredCrate();
+        if (over != null && over != hoverCrate) { Crosshair.Pop(); Sfx.Play(Sound.Click, 1.3f, 0.35f); } // landed on a new crate
+        hoverCrate = over;
+        Crosshair.Show(over != null);
         if (PauseMenu.Paused) return; // Esc (Controls.Menu) is handled by the pause screen
+        var camT = Camera.main.transform;
+        camT.position -= shakeOffset; // pan and zoom work on the steady view
         MoveCamera();
+        shakeOffset = Vector3.zero;
+        if (shakeLeft > 0f)
+        {
+            shakeLeft -= Time.deltaTime;
+            shakeOffset = Random.insideUnitCircle * shakeSize * Mathf.Clamp01(shakeLeft / 0.2f);
+            camT.position += shakeOffset;
+        }
         if (Controls.Restart.WasPressedThisFrame()) SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        if (result == 0 && (Turns > 0 || selected != null)) playTime += Time.deltaTime;
+        if (hintJob is { IsCompleted: true } job) HintReady(job);
+        int hintWait = Mathf.Max(0, Mathf.CeilToInt(hintReadyAt - Time.time));
+        if (hintWait != hintWaitShown) PauseMenu.HintWait(hintWaitShown = hintWait);
         if (result != 0 || animating) return;
 
-        if (Controls.Wait.WasPressedThisFrame()) EndVillainTurn(null);
+        if (Controls.Wait.WasPressedThisFrame()) { Sfx.Play(Sound.Wait); EndVillainTurn(null, null); }
+        if (Controls.Hint.WasPressedThisFrame()) ShowHint();
 
         var mouse = Mouse.current;
         if (mouse != null && Controls.Select.WasPressedThisFrame() && !PauseMenu.IsOverUI(mouse.position.ReadValue()))
@@ -195,33 +232,104 @@ public class DungeonGame : MonoBehaviour
         cam.transform.position = new Vector3(Mathf.Clamp(p.x, b.min.x, b.max.x), Mathf.Clamp(p.y, b.min.y, b.max.y), p.z);
     }
 
+    // The crate a click right now would pick up, if any: turns the crosshair gold.
+    Vector2Int? HoveredCrate()
+    {
+        var mouse = Mouse.current;
+        if (mouse == null || result != 0 || animating || PauseMenu.Paused) return null;
+        var pos = mouse.position.ReadValue();
+        var cell = (Vector2Int)map.WorldToCell(Camera.main.ScreenToWorldPoint(pos));
+        return !PauseMenu.IsOverUI(pos) && d.IsWood(cell) ? cell : null;
+    }
+
     void Click(Vector2Int cell)
     {
         if (d.IsWood(cell))
         {
             selected = cell == selected ? null : cell;
+            Sfx.Play(selected == null ? Sound.Drop : Sound.Pick);
             guidePage = 2; // grabbing a crate skips the tutorial's intro pages
         }
         else if (selected is { } from && d.MoveCrate(from, cell))
         {
             selected = null;
-            EndVillainTurn(cell);
+            EndVillainTurn(from, cell);
             return;
         }
-        else selected = null; // clicking anywhere else drops the selection
+        else if (selected != null) { selected = null; Sfx.Play(Sound.Nope); } // the crate can't go there, so drop the selection
         Redraw();
     }
 
-    // movedTo: where a crate just landed, or null for a wait. The crate move itself is already in the log.
-    void EndVillainTurn(Vector2Int? movedTo)
+    // from/movedTo: the crate's move, or both null for a wait. The crate move itself is already in the log.
+    void EndVillainTurn(Vector2Int? from, Vector2Int? movedTo)
     {
+        // Followed the hint: the rest of its solution still works. Anything else: work it out again next time.
+        int dir = from is { } f && movedTo is { } t ? System.Array.IndexOf(Dirs, t - f) : -1;
+        if (hintPath != null && hintPath[0].dir == dir && (dir < 0 || hintPath[0].from == from)) hintPath.RemoveAt(0);
+        else hintPath = null;
+        if (hintPath is { Count: 0 }) hintPath = null;
+        hintShown = false;
+
         Turns++;
         guidePage = 2;
         result = d.Resolve(movedTo);
         var events = d.log;
         d.log = new();
-        if (result == 1) newBest = Progress.Complete(SceneManager.GetActiveScene().name, Turns);
+        if (result == 1)
+        {
+            string level = SceneManager.GetActiveScene().name;
+            newBest = Progress.Complete(level, Turns, Progress.StarsFor(level, Turns, hinted));
+            newBestTime = Progress.CompleteTime(level, playTime);
+        }
         StartCoroutine(PlayTurn(events));
+    }
+
+    // The Hint button and key. Shows the next winning move, working it out first if needed.
+    public void ShowHint()
+    {
+        if (result != 0 || PauseMenu.Paused || hintShown) return;
+        if (Time.time < hintReadyAt) { Sfx.Play(Sound.Nope); return; }
+        hintReadyAt = Time.time + HintCooldown;
+        hinted = true;
+        hintShown = true;
+        if (hintPath == null && hintJob == null)
+        {
+            var start = d.Clone();
+            hintJobTurn = Turns;
+            hintJob = System.Threading.Tasks.Task.Run(() => (DungeonSolver.Solve(start, out bool complete), complete));
+        }
+        Redraw();
+    }
+
+    void HintReady(System.Threading.Tasks.Task<(List<DungeonSolver.Move> moves, bool complete)> job)
+    {
+        hintJob = null;
+        if (hintJobTurn != Turns) return; // the player moved on while it was thinking
+        if (job.IsFaulted) { Debug.LogException(job.Exception); hintGaveUp = true; }
+        else { hintPath = job.Result.moves; hintGaveUp = !job.Result.complete; }
+        if (!animating) Redraw();
+    }
+
+    void HintCard()
+    {
+        string title = GameText.Get("hint.title");
+        if (hintJob != null) PauseMenu.Hint(title, GameText.Get("hint.thinking"));
+        else if (hintPath == null) PauseMenu.Hint(title, GameText.Get(hintGaveUp ? "hint.toohard" : "hint.none"));
+        else if (hintPath[0].dir < 0) PauseMenu.Hint(title, GameText.Get("hint.wait"));
+        else
+        {
+            var m = hintPath[0];
+            Mark(m.from, hintColor);
+            Mark(m.from + Dirs[m.dir], hintColor);
+            PauseMenu.Hint(title, GameText.Get("hint.move", ("dir", GameText.Get("dir." + DirNames[m.dir]))));
+        }
+    }
+
+    void Rumble(float size, float time)
+    {
+        if (!GameSettings.ScreenShake) return;
+        shakeSize = size;
+        shakeLeft = time;
     }
 
     IEnumerator PlayTurn(List<(Ev ev, Vector2Int a, Vector2Int b, int info)> events)
@@ -230,7 +338,7 @@ public class DungeonGame : MonoBehaviour
         overlay.ClearAllTiles();
         foreach (var e in events) yield return Play(e.ev, e.a, e.b, e.info);
         SyncViews();
-        if (result == 1) yield return Shake(heroView.art.transform, 0.35f); // the hero realizes they're stuck
+        if (result == 1) { Sfx.Play(Sound.Huh); yield return Shake(heroView.art.transform, 0.35f); } // the hero realizes they're stuck
         animating = false;
         Redraw();
         if (result != 0) ShowResult();
@@ -242,21 +350,30 @@ public class DungeonGame : MonoBehaviour
         {
             case Ev.CrateMoved when crateViews.Remove(a, out var crate):
                 crateViews[b] = crate;
+                Sfx.Play(Sound.Slide, info == 1 ? 0.7f : 1f); // the brute's push is lower
                 var slide = Slide(crate, b, 0f);
                 return info == 1 ? Run(slide) : slide; // a brute's push slides along with the brute's own step
             case Ev.CrateSmashed when crateViews.Remove(a, out var smashed):
                 return Break(smashed);
             case Ev.Blast when crateViews.Remove(b, out var blasted):
+                Sfx.Play(Sound.Zap);
+                Rumble(0.25f, 0.3f);
                 return Seq(Beam(Cell(a), Cell(b)), Break(blasted));
             case Ev.CrateStoned when crateViews.TryGetValue(a, out var stoned):
+                Sfx.Play(Sound.Stone);
+                Rumble(0.08f, 0.15f);
                 return Seq(Squash(stoned.art.transform), Tint(stoned, stoneTint));
             case Ev.PotionByCrate or Ev.PotionByHero or Ev.PotionByFoe when potionViews.Remove(a, out var potion):
+                Sfx.Play(ev == Ev.PotionByHero ? Sound.Gulp : ev == Ev.PotionByFoe ? Sound.Yoink : Sound.Pop);
                 return Pop(potion);
             case Ev.HeroRecalled:
+                Sfx.Play(Sound.Recall);
                 return Seq(ScaleTo(heroView.art.transform, 0f, 0.15f), Teleport(heroView, b), ScaleTo(heroView.art.transform, 1f, 0.15f));
             case Ev.HeroMoved:
+                Sfx.Play(Sound.Step, heroSteps++ % 2 == 0 ? 1f : 1.15f);
                 return Slide(heroView, b, 0.18f);
             case Ev.FoeMoved:
+                Sfx.Play(Sound.FoeStep);
                 return Slide(foeViews[info], b, 0.14f);
         }
         return null;
@@ -296,6 +413,8 @@ public class DungeonGame : MonoBehaviour
     // A crate breaks: a quick shake, then it shrinks away while splinters fly.
     IEnumerator Break(View v)
     {
+        Sfx.Play(Sound.Smash);
+        Rumble(0.12f, 0.2f);
         yield return Shake(v.art.transform, 0.1f);
         for (int i = 0; i < 6; i++) StartCoroutine(Splinter(v.root.position));
         yield return ScaleTo(v.art.transform, 0f, 0.1f);
@@ -409,10 +528,19 @@ public class DungeonGame : MonoBehaviour
     {
         string level = SceneManager.GetActiveScene().name;
         string next = Progress.Next(level);
-        string body = GameText.Get(result == -1 ? "result.lost" : newBest ? "result.won.best" : "result.won", ("turns", GameText.Turns(Turns)));
-        string extra = result == 1 ? GameText.Get(guiding ? "result.won.tutorial" : next == null ? "result.won.last" : "result.won.normal") : "";
-        if (extra != "") body += "\n" + extra;
-        PauseMenu.ShowResult(result == 1, body, next);
+        var lines = new List<string> { GameText.Get(result == -1 ? "result.lost" : newBest ? "result.won.best" : "result.won", ("turns", GameText.Turns(Turns))) };
+        int stars = 0;
+        if (result == 1)
+        {
+            lines.Add(GameText.Get(guiding ? "result.won.tutorial" : next == null ? "result.won.last" : "result.won.normal"));
+            stars = Progress.StarsFor(level, Turns, hinted);
+            if (hinted) lines.Add(GameText.Get("result.hinted"));
+            else if (stars < 3) lines.Add(GameText.Get("result.par", ("turns", GameText.Turns(Progress.ParFor(level)))));
+            lines.Add(GameText.Get(newBestTime ? "result.time.best" : "result.time",
+                ("time", Progress.FormatTime(playTime)), ("best", Progress.FormatTime(Progress.BestTime(level)))));
+        }
+        Sfx.Play(result == 1 ? Sound.Win : Sound.Lose);
+        PauseMenu.ShowResult(result == 1, string.Join("\n", lines.FindAll(l => l != "")), next, stars);
     }
 
     void Redraw()
@@ -430,12 +558,18 @@ public class DungeonGame : MonoBehaviour
         Guide();
     }
 
-    // The hint card: tutorial steps on a first play of the tutorial, otherwise the level intro until the first move.
+    // The hint card: tutorial steps on a first play of the tutorial, otherwise a card for each piece the player hasn't
+    // met yet, then the level intro until the first move.
     void Guide()
     {
         if (result != 0) { PauseMenu.Hint(null, null); return; }
+        if (hintShown) { HintCard(); return; }
         if (!guiding)
         {
+            foreach (var p in d.potions.Values)
+                if (NewPieceCard(Progress.PotionKeys[(int)p], potionTiles[(int)p], c => d.potions.TryGetValue(c, out var q) && q == p)) return;
+            foreach (var f in d.foes)
+                if (NewPieceCard(Progress.FoeKeys[(int)f.kind], foeTiles[(int)f.kind], c => d.foes.Exists(g => g.cell == c && g.kind == f.kind))) return;
             int n = System.Array.IndexOf(Progress.Levels, SceneManager.GetActiveScene().name) + 1;
             PauseMenu.Hint(GameText.Get($"level{n}.title"), Turns == 0 ? GameText.Get($"level{n}.intro") : null);
             return;
@@ -464,6 +598,16 @@ public class DungeonGame : MonoBehaviour
                 if (d.Walkable(d.exit + dir)) Mark(d.exit + dir, hintColor);
             PauseMenu.Hint(GameText.Get("tutorial.block.title"), GameText.Get("tutorial.block.body"));
         }
+    }
+
+    // Shows the card for a piece met for the first time, with its cells marked, until the player presses the button.
+    bool NewPieceCard(string piece, Tile tile, System.Predicate<Vector2Int> isPiece)
+    {
+        if (Progress.Seen(piece)) return false;
+        foreach (var c in d.floor) if (isPiece(c)) Mark(c, hintColor);
+        PauseMenu.Hint(GameText.Get("newpiece.title", ("name", GameText.Get($"howto.{piece}.title"))), GameText.Get($"howto.{piece}.body"),
+            GameText.Get("newpiece.button"), () => { Progress.MarkSeen(piece); Redraw(); }, tile.sprite, tile.color);
+        return true;
     }
 
     void Mark(Vector2Int c, Color color)

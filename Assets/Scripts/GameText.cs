@@ -41,7 +41,8 @@ public static class GameText
         s = s.Replace("{Click}", click).Replace("{click}", char.ToLower(click[0]) + click[1..])
             .Replace("{wait}", Controls.KeyName(Controls.Wait))
             .Replace("{restart}", Controls.KeyName(Controls.Restart))
-            .Replace("{pan}", Controls.KeyName(Controls.Pan));
+            .Replace("{pan}", Controls.KeyName(Controls.Pan))
+            .Replace("{hint}", Controls.KeyName(Controls.Hint));
         foreach (var (name, value) in fill) s = s.Replace("{" + name + "}", value.ToString());
         return s;
     }

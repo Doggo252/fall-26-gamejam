@@ -31,17 +31,6 @@
             </ui:VisualElement>
         </ui:VisualElement>
 
-        <ui:VisualElement name="feed" class="feed hidden-right">
-            <ui:VisualElement class="feed-header">
-                <ui:VisualElement name="live-dot" class="live-dot" />
-                <ui:Label text="#feed.title" class="feed-title" />
-            </ui:VisualElement>
-            <ui:VisualElement class="feed-row"><ui:Label text="#feed.steps" class="feed-key" /><ui:Label name="stat-steps" text="0" class="feed-value" /></ui:VisualElement>
-            <ui:VisualElement class="feed-row"><ui:Label text="#feed.crates" class="feed-key" /><ui:Label name="stat-crates" text="0" class="feed-value" /></ui:VisualElement>
-            <ui:VisualElement class="feed-row"><ui:Label text="#feed.trapped" class="feed-key" /><ui:Label name="stat-trapped" text="0" class="feed-value feed-value--good" /></ui:VisualElement>
-            <ui:VisualElement class="feed-row"><ui:Label text="#feed.treasure" class="feed-key" /><ui:Label name="stat-treasure" text="0" class="feed-value feed-value--bad" /></ui:VisualElement>
-        </ui:VisualElement>
-
         <ui:VisualElement name="scrim" class="scrim" />
 
         <ui:Instance template="Settings" class="overlay" picking-mode="Ignore" />
@@ -51,6 +40,7 @@
             <ui:VisualElement class="frame">
                 <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
                 <ui:Label text="#levels.title" class="panel-title" />
+                <ui:VisualElement name="stars-total" class="stars-total" picking-mode="Ignore" />
                 <ui:VisualElement name="level-grid" class="level-grid" />
                 <ui:VisualElement class="panel-footer">
                     <ui:Button name="reset-progress" text="#levels.reset" class="small-btn small-btn--quiet" />
@@ -61,7 +51,7 @@
 
         <!-- How to Play -->
         <ui:VisualElement name="howto-panel" class="panel">
-            <ui:VisualElement class="frame">
+            <ui:VisualElement class="frame frame--tall">
                 <ui:VisualElement class="stud stud--tl" /><ui:VisualElement class="stud stud--tr" /><ui:VisualElement class="stud stud--bl" /><ui:VisualElement class="stud stud--br" />
                 <ui:Label text="#howto.title" class="panel-title" />
                 <ui:VisualElement class="steps">
@@ -81,12 +71,41 @@
                         <ui:Label text="#howto.3.body" class="step-body" />
                     </ui:VisualElement>
                 </ui:VisualElement>
-                <ui:VisualElement class="pieces">
+                <ui:ScrollView class="pieces" mode="Vertical" vertical-scroller-visibility="Auto" horizontal-scroller-visibility="Hidden">
+                    <ui:VisualElement class="pieces-grid">
                     <ui:VisualElement class="piece">
                         <ui:VisualElement class="piece-icon piece-icon--potion" />
                         <ui:VisualElement class="piece-text">
                             <ui:Label text="#howto.potion.title" class="step-title" />
                             <ui:Label text="#howto.potion.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--sleep" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.sleep.title" class="step-title" />
+                            <ui:Label text="#howto.sleep.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--recall" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.recall.title" class="step-title" />
+                            <ui:Label text="#howto.recall.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--rage" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.rage.title" class="step-title" />
+                            <ui:Label text="#howto.rage.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--stone" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.stone.title" class="step-title" />
+                            <ui:Label text="#howto.stone.body" class="step-body" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement class="piece">
@@ -96,7 +115,43 @@
                             <ui:Label text="#howto.dwarf.body" class="step-body" />
                         </ui:VisualElement>
                     </ui:VisualElement>
-                </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--brute" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.brute.title" class="step-title" />
+                            <ui:Label text="#howto.brute.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--wizard" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.wizard.title" class="step-title" />
+                            <ui:Label text="#howto.wizard.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--thief" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.thief.title" class="step-title" />
+                            <ui:Label text="#howto.thief.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--hunter" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.hunter.title" class="step-title" />
+                            <ui:Label text="#howto.hunter.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement class="piece">
+                        <ui:VisualElement class="piece-icon piece-icon--ward" />
+                        <ui:VisualElement class="piece-text">
+                            <ui:Label text="#howto.ward.title" class="step-title" />
+                            <ui:Label text="#howto.ward.body" class="step-body" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:ScrollView>
                 <ui:VisualElement class="panel-footer"><ui:Button text="#back" class="small-btn back-btn" /></ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

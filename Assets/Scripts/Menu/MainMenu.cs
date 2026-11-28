@@ -4,13 +4,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
-// Drives the main menu (UI Toolkit): intro animation, panels, level select, embers and the live feed.
+// Drives the main menu (UI Toolkit): intro animation, panels, level select and embers.
 // Most motion is USS transitions in MainMenu.uss; this script only adds and removes classes at the right moments.
 [RequireComponent(typeof(UIDocument))]
 public class MainMenu : MonoBehaviour
 {
     static string[] levels => Progress.Levels;
-    public MenuDungeon dungeon;
     public int emberCount = 40;
 
     class Ember { public VisualElement e; public float x, y, rise, sway, phase, alpha; }
@@ -19,7 +18,6 @@ public class MainMenu : MonoBehaviour
     MenuPanels panels;
     SettingsPanel settings;
     readonly List<Ember> embers = new();
-    readonly Dictionary<Label, int> shownStats = new();
     bool leaving;
 
     void Start()
@@ -65,31 +63,9 @@ public class MainMenu : MonoBehaviour
             var b = buttons[i];
             After(700 + i * 85, () => b.RemoveFromClassList("hidden-left"));
         }
-        After(1300, () => root.Q("feed").RemoveFromClassList("hidden-right"));
         After(1400, () => root.Q<Button>("play").Focus());
 
         root.schedule.Execute(() => title.ToggleInClassList("title--glow")).Every(2400).StartingIn(1600);
-        root.schedule.Execute(() => root.Q("live-dot").ToggleInClassList("live-dot--dim")).Every(700);
-        root.schedule.Execute(UpdateFeed).Every(200);
-    }
-
-    void UpdateFeed()
-    {
-        if (dungeon == null) return;
-        Show("stat-steps", dungeon.HeroSteps);
-        Show("stat-crates", dungeon.CratesDropped);
-        Show("stat-trapped", dungeon.TimesTrapped);
-        Show("stat-treasure", dungeon.TreasuresTaken);
-
-        void Show(string name, int value)
-        {
-            var label = root.Q<Label>(name);
-            if (shownStats.TryGetValue(label, out var old) && old == value) return;
-            shownStats[label] = value;
-            label.text = value.ToString();
-            label.AddToClassList("feed-value--bump");
-            After(220, () => label.RemoveFromClassList("feed-value--bump"));
-        }
     }
 
     void SetupEmbers()
@@ -144,6 +120,12 @@ public class MainMenu : MonoBehaviour
 
     void BuildLevels()
     {
+        var total = root.Q("stars-total");
+        Stars.Fill(total, 1, 22f, of: 1);
+        int got = 0;
+        foreach (var l in levels) got += Progress.Stars(l);
+        total.Add(new Label(GameText.Get("levels.stars", ("n", got), ("total", levels.Length * 3))));
+
         var grid = root.Q("level-grid");
         grid.Clear();
         for (int i = 0; i < levels.Length; i++)
@@ -168,6 +150,10 @@ public class MainMenu : MonoBehaviour
                 var bestLabel = new Label(GameText.Get("levels.best", ("turns", GameText.Turns(best))));
                 bestLabel.AddToClassList("level-best");
                 tile.Add(bestLabel);
+                var stars = new VisualElement { pickingMode = PickingMode.Ignore };
+                stars.AddToClassList("level-stars");
+                Stars.Fill(stars, Progress.Stars(level), 18f);
+                tile.Add(stars);
             }
             grid.Add(tile);
             After(140 + i * 60, () => tile.RemoveFromClassList("hidden-pop"));
