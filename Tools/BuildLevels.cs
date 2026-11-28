@@ -7,7 +7,7 @@ using UnityEngine.Tilemaps;
 // Gives the level tiles Kenney art, repaints the tutorial (Main Scene) and creates Level 2 to Level 16
 // as copies of it with their own layouts. Level names and intro cards are in Assets/Resources/Text.txt. Run with:
 // unity command script run --file Tools/BuildLevels.cs --entry BuildLevels.Run
-// WARNING: overwrites the map in every level scene listed below. Tools/BuildDay1.cs would undo the art.
+// WARNING: overwrites the map in every level scene listed below.
 public static class BuildLevels
 {
     const string Kenney = "Assets/Art/Kenney/TinyDungeon";

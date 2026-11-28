@@ -18,7 +18,9 @@
 /[Tt]emp/
 /[Oo]bj/
 /[Bb]uild/
-/[Bb]uilds/
+# Builds/ is committed on purpose, so the game can be downloaded from the repo.
+# Unity's debug-symbol folder next to each build isn't part of the game ("DontShipItWithYourGame").
+*_BackUpThisFolder_ButDontShipItWithYourGame/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 *.log
@@ -83,7 +85,6 @@ mono_crash.*
 *.aab
 *.unitypackage
 *.unitypackage.meta
-*.app
 
 # Crashlytics generated file
 crashlytics-build.properties
